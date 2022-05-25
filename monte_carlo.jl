@@ -28,7 +28,7 @@ end
 
 # ╔═╡ 8c48f025-cd13-4c3a-9bcf-42775ffa783b
 md"""
-# Lab N: Bayesian Computing & Integration
+# Lab 9: Bayesian Computing & Integration
 #### [Penn State Astroinformatics Summer School 2022](https://sites.psu.edu/astrostatistics/astroinfo-su22-program/)
 #### [Eric Ford](https://www.personal.psu.edu/ebf11)
 """
