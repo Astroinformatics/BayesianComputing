@@ -591,7 +591,9 @@ end
 model = param_mcmc.dist_infer(data)
 
 # ╔═╡ 6a23b1e6-fd0f-406d-bc93-c713cecc8fe3
-md"Observation number to plot: $(@bind plt_pl_id Slider(1:num_pl))"
+if inferred_ready
+	md"Observation number to plot: $(@bind plt_pl_id Slider(1:num_pl))"
+end
 
 # ╔═╡ d614f82e-a233-4896-8b9b-26a357f28ff0
 if param_mcmc.dist_infer == eccentricities_rayleigh
@@ -671,7 +673,7 @@ if param_mcmc.ready && inferred_ready
 end
 
 # ╔═╡ 039fd2fb-ab74-4d11-8144-e4264def99cf
-if param_mcmc.ready
+if param_mcmc.ready && inferred_ready
 	plot(xlabel=latexstring("e_{" * string(plt_pl_id) * "}"),
 		ylabel = "Posterior PDF", xlims=(0,min(1,max(data.e_obs[plt_pl_id]+2.5*data.σₑ[plt_pl_id],maximum(chain_post_pred["e_latent[$plt_pl_id]"])))) )
 	density!(chain_post_pred["e_latent[$plt_pl_id]"], 

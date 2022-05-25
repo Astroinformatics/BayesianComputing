@@ -60,7 +60,7 @@ Then, we'll demonstrate how to use a probabilistic programming language to model
 
 # ╔═╡ d49b2d7a-fabe-4525-a11c-8e808960fc96
 begin
-	data_path = "koi250.01.csv" # Data from Mazeh et al. 2013 ApJS 208, 16 (Table 2)
+	data_path = "data/koi250.01.csv" # Data from Mazeh et al. 2013 ApJS 208, 16 (Table 2)
 	df = CSV.read(data_path, select=[:n, :t, :σₜ], DataFrame) # t is BJD-2454900
 	df.σₜ ./= 24*60   # convert units of uncertainties from minutes to days
 	nobs = size(df,1)
@@ -458,12 +458,12 @@ Based on the previous analysis, it is clear that our original model was pretty g
 """
 
 # ╔═╡ 2144e594-1055-4a7a-9abc-88ef5d2f3045
-let
+if mcmc_linear.run 
+	mean_posterior_predictive = vec(mean(Array(group(pred,:y)),dims=1));
 	scatter(df.n,(df.t.-mean_posterior_predictive).*24*60,yerr=df.σₜ.*24*60, label=:none)
 	xlabel!("Transit Number")
 	ylabel!("Residual (minutes)")
 end
-
 
 # ╔═╡ cd862907-3590-4b05-8715-797c2edae0bc
 md"""
@@ -2351,7 +2351,7 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─1c651c38-d151-11ec-22a6-87180bd6546a
 # ╟─eb9c3330-89a9-4c8e-9eae-cd227599e144
-# ╟─d49b2d7a-fabe-4525-a11c-8e808960fc96
+# ╠═d49b2d7a-fabe-4525-a11c-8e808960fc96
 # ╟─90ae54f1-c49d-4d66-82eb-eb783c389e54
 # ╟─efcabcc4-40ed-4492-b3e4-e190be248fce
 # ╟─c0e7a487-e8eb-4078-a473-e5fe64245f4c
