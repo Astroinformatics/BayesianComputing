@@ -20,19 +20,19 @@ begin
 
 	#using LinearAlgebra, PDMats
 	using Optim, ForwardDiff, Tracker #ReverseDiff#Zygote
-	
+
 	using Turing, DynamicPPL, Distributions
 	using MCMCChains
 	using FillArrays
-	
+
 	using Plots, StatsPlots, LaTeXStrings#, PairPlots, , ColorSchemes
 
 	using PlutoUI, HypertextLiteral
-	
-	# Set a seed for reproducibility.
+
+	# Set a seed for reproduciblity.
 	using Random
 	Random.seed!(0)
-	#using StableRNGs; 
+	#using StableRNGs;
 	#rng = StableRNG(42);
 
 	Turing.setadbackend(:tracker)
@@ -43,7 +43,7 @@ begin
 		import Logging
 		Logging.disable_logging(Logging.Warn)
 	end
-end;	
+end;
 
 # ╔═╡ 1c651c38-d151-11ec-22a6-87180bd6546a
 md"""
@@ -54,7 +54,7 @@ md"""
 
 # ╔═╡ c217818e-03c6-4303-b723-3f4e7263dccb
 md"""
-## Overview 
+## Overview
 
 In this lab, we'll analyze the eccentricity distribution of a population of planets using a hierarchical Bayesian Model and the Turing probabilistic programming language.  
 You'll be able to generate synthetic datasets from multiple intrinsic distributions, choose the magnitude of measurement uncertainties, and compare the true intrinsic distribution to the inferred distribution.  
@@ -63,16 +63,16 @@ You'll be able to generate synthetic datasets from multiple intrinsic distributi
 # ╔═╡ 63a4e3e4-1645-4715-90b1-b708379706ef
 md"""
 ## Set Properties of the Synthetic Dataset
-First, you'll select a model to use for generating a synthetic population of planets. 
-Second, you'll set the prior values needed by that model. 
+First, you'll select a model to use for generating a synthetic population of planets.
+Second, you'll set the prior values needed by that model.
 Then, you'll set the number of planets to include in our synthetic dataset and the magnitude of measurement uncertainties.  
 """
 
 # ╔═╡ 2487706a-f408-4cc4-901a-f2b72fe562d4
 md"""
-## Generate dataset 
+## Generate dataset
 The distribution you selected is stored in `dist_gen` and a sampler for that model is stored in `sampling_alg`.
-There's some helper code at the bottom of the notebook that collects the inputs above into the variable `param_true`.  The code below conditions the generative model you selected on the true population parameters and draws a realization of the data conditioned on the true population parameters.  That draw provides both the "true" eccentricities and the "observed eccentricities" that you'll analyze later. 
+There's some helper code at the bottom of the notebook that collects the inputs above into the variable `param_true`.  The code below conditions the generative model you selected on the true population parameters and draws a realization of the data conditioned on the true population parameters.  That draw provides both the "true" eccentricities and the "observed eccentricities" that you'll analyze later.
 """
 
 # ╔═╡ 90ae54f1-c49d-4d66-82eb-eb783c389e54
@@ -88,9 +88,9 @@ Number of bins for histogram:  $(@bind num_bins NumberField(10:10:200, default=4
 md"""
 **Question:** For what values of the measurement uncertainty is there a significant difference between the observed distribution and the intrinsic distribution?
 
-**Question:** How would your responce above change if you increase the number of planets by a factor of 2?  10?
+**Question:** How would your response above change if you increase the number of planets by a factor of 2?  10?
 
-**Question:** Try changing the parameters of the intrinsic distribution to result in a more/less narrowly peaked intrinsic eccentricity distribution.  How does that affect the number of planets required before the observed and instrinsic distributions are significantly different?
+**Question:** Try changing the parameters of the intrinsic distribution to result in a more/less narrowly peaked intrinsic eccentricity distribution.  How does that affect the number of planets required before the observed and intrinsic distributions are significantly different?
 """
 
 # ╔═╡ 58b4382b-6a5e-43c0-8f93-7f5602efc230
@@ -98,7 +98,7 @@ md"## Analyze with a HBM"
 
 # ╔═╡ df58fcff-bc39-44b5-866d-979b29f23c28
 md"""
-The model you selected for analyze the data with above is stored in the variable `param_mcmc.dist_infer`.  The nexet cell conditions that model on the data generated previously.
+The model you selected for analyze the data with above is stored in the variable `param_mcmc.dist_infer`.  The next cell conditions that model on the data generated previously.
 """
 
 # ╔═╡ a6a18eea-cca6-4cdd-bfab-a88169d0f84d
@@ -125,13 +125,13 @@ md"""
 Once you've thought through the results for a first calculation, it's time to do some numerical experiment.  
 
 ### Effects of sample size and measurement uncertainty
-First, choose the same model to generate a sample and to perofrm inference.  
+First, choose the same model to generate a sample and to perform inference.  
 
-**Question:**  Is the inferred distribution a good approximation to the intrinsic distribution?  Is it significantly better than trating the observed distribution as an approximation to the intrinsic distribution?  
+**Question:**  Is the inferred distribution a good approximation to the intrinsic distribution?  Is it significantly better than treating the observed distribution as an approximation to the intrinsic distribution?  
 
 **Question:**  How does the above change if you increase the number of planets by a factor of 2?  
 
-**Question:**  Try increasing the measurement uncertainty to 0.2.  Can you still recover the instrinic distribution accurately by increasing the number of planets?
+**Question:**  Try increasing the measurement uncertainty to 0.2.  Can you still recover the intrinsic distribution accurately by increasing the number of planets?
 """
 
 # ╔═╡ 667a3efc-1746-4997-8b85-04e96a0183cf
@@ -142,7 +142,7 @@ We can also look at the posterior distribution for each planet's eccentricity (b
 
 # ╔═╡ d322b5de-62dd-4c6e-af05-3452af511c62
 md"""
-**Question:**  How does the width of the posterior compare to the width of the measurement?  How do you expect that would change if you varry the measurement precission or the number of of planets in your sample?
+**Question:**  How does the width of the posterior compare to the width of the measurement?  How do you expect that would change if you vary the measurement precision or the number of of planets in your sample?
 
 **Question:**  Do you recognize a trend for location of the mode of the posterior relative to the mode of the measurement distribution?  Why is that?  How would the difference change in you chose an intrinsic distribution that was less sharply peaked?
 
@@ -155,7 +155,7 @@ If you still have time, consider choosing one model to generate the data and a d
 
 **Question:** How does the distribution inferred with the wrong model compare to the distribution inferred with the correct model?  
 
-**Question:** Under what circumstances are some quantiative or qualitative properties robustly inferred, even when using the wrong model?  Why factor contribute to that?
+**Question:** Under what circumstances are some quantitative or qualitative properties robustly inferred, even when using the wrong model?  Why factor contribute to that?
 
 """
 
@@ -174,7 +174,7 @@ md"### Uniform"
 begin
 	@model function eccentricities_uniform(e_obs, σₑ, ::Type{T} = Float64) where {T}
     @assert size(σₑ) == size(e_obs)
-	N = size(e_obs,1)	
+	N = size(e_obs,1)
 	@assert N >= 1
 	eps = 1e-4
     # Prior for hyperparameter(s)
@@ -188,7 +188,7 @@ begin
 	#dist_e = Uniform(min(min_e,max_e), max(min_e,max_e))
 	dist_e = Uniform(min_e,max_e)
 	e_latent = Vector{T}(undef, N)
-	# Specify liklihood
+	# Specify likelihood
 	for i ∈ eachindex(e_obs)
 		e_latent[i] ~ dist_e  # Latent variables
     	e_obs[i]  ~ truncated(Normal(e_latent[i], σₑ[i]),0,1)  # Observed variables
@@ -211,7 +211,7 @@ md"### Beta Distribution"
 begin
 	@model function eccentricities_beta(e_obs, σₑ, ::Type{T} = Float64) where {T}
     @assert size(σₑ) == size(e_obs)
-	N = size(e_obs,1)	
+	N = size(e_obs,1)
 	@assert N >= 1
     # Prior for hyperparameter(s)
 	α ~ truncated(Exponential(),lower=0.5)
@@ -241,10 +241,10 @@ md"### Rayleigh Distribution"
 begin
 	@model function eccentricities_rayleigh(e_obs, σₑ, ::Type{T} = Float64) where {T}
     @assert size(σₑ) == size(e_obs)
-	N = size(e_obs,1)	
+	N = size(e_obs,1)
 	@assert N >= 1
 	# Prior for hyperparameter(s)
-	σᵣ ~ Uniform(1e-4, 0.5) 
+	σᵣ ~ Uniform(1e-4, 0.5)
 	e_latent = Vector{T}(undef, N)
 	# Specify liklihood
 	for i ∈ eachindex(e_obs)
@@ -257,7 +257,7 @@ begin
 	# Convenience functions
 	eccentricities_rayleigh(df::DataFrame) = eccentricities_rayleigh(df.e_obs, df.σₑ)
 	eccentricities_rayleigh(n::Integer, σ = 0.0) = eccentricities_rayleigh( missings(n), fill(σ,n) )
-	
+
 	# Sampler to use for this model
 	sampler_rayleigh = NUTS(0.65)
 end
@@ -269,7 +269,7 @@ md"### Mixture of two Rayleigh Distributions"
 begin
 	@model function eccentricities_rayleigh_mixture(e_obs, σₑ, ::Type{T} = Float64) where {T}
     @assert size(σₑ) == size(e_obs)
-	N = size(e_obs,1)	
+	N = size(e_obs,1)
 	@assert N >= 1
 	K = 2
     # Prior for hyperparameter(s)
@@ -341,8 +341,8 @@ TableOfContents()
 function aside(x)
         @htl("""
                 <style>
-                
-                
+
+
                 @media (min-width: calc(700px + 30px + 300px)) {
                         aside.plutoui-aside-wrapper {
                                 position: absolute;
@@ -354,13 +354,13 @@ function aside(x)
                         }
                 }
                 </style>
-                
+
                 <aside class="plutoui-aside-wrapper">
                 <div>
                 $(x)
                 </div>
                 </aside>
-                
+
                 """)
 end
 
@@ -398,23 +398,23 @@ Number of Planets: $(Child("num_pl",NumberField(1:max_num_planets,default=defaul
 Measurement uncertainty:  $(Child("σₑ",NumberField(0:0.01:1,default=default_σₑ)))  
 """
 	end
-	)	
+	)
 end
 
 # ╔═╡ 230ad18a-c830-4e86-9edb-83e541994006
-function pick_param_beta() 
+function pick_param_beta()
 	# Default values from Kipping 2013
 	@bind param_beta confirm(
 	PlutoUI.combine() do Child
 md"""
-α: $(Child("α",NumberField(0.5:0.01:10,default=0.867))) 
+α: $(Child("α",NumberField(0.5:0.01:10,default=0.867)))
 β: $(Child("β",NumberField(0.5:0.01:10,default=3.03)))  
 
 Number of Planets: $(Child("num_pl",NumberField(1:max_num_planets,default=default_num_planets)))  
 Measurement uncertainty:  $(Child("σₑ",NumberField(0:0.01:1,default=default_σₑ)))  
 """
 	end
-	)	
+	)
 end
 
 # ╔═╡ 981a9b4d-d4cd-4497-99c9-f0747e042f0b
@@ -428,7 +428,7 @@ Number of Planets: $(Child("num_pl",NumberField(1:max_num_planets,default=defaul
 Measurement uncertainty:  $(Child("σₑ",NumberField(0:0.01:1,default=default_σₑ)))  
 """
 	end
-	)	
+	)
 end
 
 # ╔═╡ eb3fb452-62c2-4fab-a90e-942c4649ab23
@@ -444,22 +444,22 @@ Number of Planets: $(Child("num_pl",NumberField(1:max_num_planets,default=defaul
 Measurement uncertainty:  $(Child("σₑ",NumberField(0:0.01:1,default=default_σₑ)))  
 """
 	end
-	)	
+	)
 end
 
 # ╔═╡ ef766433-4510-424c-b63a-ab9a81a7461e
 begin  # Set choices for distributions
-	model_list = [ 
-		eccentricities_rayleigh, 
-		eccentricities_beta, 
+	model_list = [
+		eccentricities_rayleigh,
+		eccentricities_beta,
 		#eccentricities_rayleigh_mixture  # would need to fix sampling issues
 		#eccentricities_uniform, # would need to fix sampling issues
 			]
 	model_name_list = [
-		"Rayleigh", 
-		"Beta", 
+		"Rayleigh",
+		"Beta",
 		#"Mixture of 2 Rayleighs",
-		#"Uniform", 
+		#"Uniform",
 		]
 	model_choices = model_list .=> model_name_list
 end;
@@ -515,14 +515,14 @@ if dist_gen == eccentricities_rayleigh
 	param_true = param_rayleigh
 elseif dist_gen == eccentricities_rayleigh_mixture
 	num_pl = param_rayleigh_mixture.num_pl
-	param_true = param_rayleigh_mixture 
+	param_true = param_rayleigh_mixture
 elseif dist_gen == eccentricities_beta
 	num_pl = param_beta.num_pl
-	param_true = param_beta 
+	param_true = param_beta
 elseif dist_gen == eccentricities_uniform
 	num_pl = param_uniform.num_pl
 	param_true = param_uniform
-else	
+else
 	num_pl = nothing
 	param_true = nothing
 	md"""
@@ -534,10 +534,10 @@ end
 begin # Generate synthetic dataset
 	# Create model conditioned on _missing_ values for e_obs, but numerical values for σₑ
 	model_use = dist_gen(num_pl, param_true.σₑ)    
-	
+
 	# Create model that also conditions on the true population parameter values
-	model_true = condition(model_use, param_true ) 
-	
+	model_true = condition(model_use, param_true )
+
 	# Draw data conditioned on true population parameters
 	data = model_true()       
 
@@ -605,7 +605,7 @@ elseif param_mcmc.dist_infer == eccentricities_beta
 	param_init = (; α = 1, β = 1)
 elseif param_mcmc.dist_infer == eccentricities_uniform
 	param_init = (; e_min = 0.01, e_max = 0.9 )
-else	
+else
 	param_init = nothing
 	md"""
 	!!! error "Notebook doesn't have code to set generative model parameters."
@@ -614,16 +614,16 @@ end
 
 # ╔═╡ 5e002142-7391-4536-aa95-2a422daff27c
 begin
-	opt_start_param = merge( param_init, 
+	opt_start_param = merge( param_init,
 		NamedTuple([Symbol("e_latent[$i]") for i in 1:num_pl]  .=> 	data.e_obs ) )
 	param_start_mcmc = opt_start_param
-	
+
 	if param_mcmc.dist_infer == eccentricities_rayleigh_mixture
 		component_param = NamedTuple([Symbol("component[$i]") for i in 1:num_pl] .=> rand(1:2,num_pl) )
 		opt_start_param = merge(opt_start_param,component_param)
 		param_start_mcmc = [] #
 	end
-	
+
 end
 
 # ╔═╡ 1123ba8b-e638-4a6e-96d3-c51d085b4dc7
@@ -631,9 +631,9 @@ param_start_mcmc
 
 # ╔═╡ 741dfd1a-8d46-4458-9f9c-ecd1f62d8da2
 if param_mcmc.ready    # Only run MCMC if Ready box is checked above
-	# Run MCMC starting from MAP 
+	# Run MCMC starting from MAP
 	if length(param_start_mcmc) > 0
-		
+
 		chain = sample(model, sampling_alg, param_mcmc.num_iterations, init_params=param_start_mcmc)
 	else
 		chain = sample(model, sampling_alg, param_mcmc.num_iterations)
@@ -654,7 +654,7 @@ if param_mcmc.ready && inferred_ready
 	samples_post_pred_latent = vec(Array(group(chain_post_pred,"e_latent")))
 	plt1 = histogram(samples_true.e_latent,
 		weights=repeat([num_bins/(max_e_plt*length(samples_true.e_latent))],length(samples_true.e_latent)),
-		bins=bins_plt, alpha=0.5, label="Intrinsic Distribution")	
+		bins=bins_plt, alpha=0.5, label="Intrinsic Distribution")
 	histogram!(vec(Array(group(chain_post_pred,"e_latent"))),
 		weights=repeat([num_bins/(max_e_plt*length(samples_post_pred_latent))],length(samples_post_pred_latent)),
 		bins=bins_plt, alpha=0.5, label="Inferred Distribution")
@@ -676,19 +676,19 @@ end
 if param_mcmc.ready && inferred_ready
 	plot(xlabel=latexstring("e_{" * string(plt_pl_id) * "}"),
 		ylabel = "Posterior PDF", xlims=(0,min(1,max(data.e_obs[plt_pl_id]+2.5*data.σₑ[plt_pl_id],maximum(chain_post_pred["e_latent[$plt_pl_id]"])))) )
-	density!(chain_post_pred["e_latent[$plt_pl_id]"], 
+	density!(chain_post_pred["e_latent[$plt_pl_id]"],
 		label="Posterior", nbins=40)
 	plot!(Normal(data.e_obs[plt_pl_id], data.σₑ[plt_pl_id]), label="Measurement")
-	plot!(fill(data.e_true[plt_pl_id],2),[0,1], label=:none)	
+	plot!(fill(data.e_true[plt_pl_id],2),[0,1], label=:none)
 end
 
 # ╔═╡ 782db16b-39b9-4526-89e8-3b240939c0c0
 if false
 if !param_mcmc.init_map
 	#param_start_mcmc = opt_start_param
-else 
-	map_estimate = optimize(model, MAP(), collect(values(opt_start_param)) ) 
-	
+else
+	map_estimate = optimize(model, MAP(), collect(values(opt_start_param)) )
+
 	if Optim.converged(map_estimate.optim_result) &&(Optim.iterations(map_estimate.optim_result) >= 1)
 	#	param_start_mcmc = NamedTuple(keys(opt_start_param) .=> map(k->map_estimate.values[k], keys(opt_start_param)))
 			#map_estimate.values.array

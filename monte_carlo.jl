@@ -16,12 +16,12 @@ end
 
 # ╔═╡ 0a7ccbce-d228-11ec-34a3-1fc3ac51f1a8
 begin
-	using Random 
+	using Random
 	using RNGPool  # For parallel random numbers
 	using Sobol    # For Sobol only
 	using QuasiMonteCarlo # For lattice sampline
 	using HCubature, StaticArrays  # For adaptive cubature
-	
+
 	using Plots
 	using PlutoUI
 end
@@ -39,7 +39,7 @@ md"""
 """
 
 # ╔═╡ 4987b363-c8d0-4f99-b7e9-2a811d1b1956
-function f_gaussian_at_origin(x; sigma::Real = 1.0) 
+function f_gaussian_at_origin(x; sigma::Real = 1.0)
 	result = exp(-sum(x.^2)./(2*sigma^2))
 	result /= 2π*sigma^2
 	return result
@@ -74,15 +74,15 @@ let
 	errstr = "" #"\n(Δ = " * string(round(Δ_uniform_2d,digits=5)) * ")"
 	plt1 = scatter(view(p_uniform,1,1:max_evals_2d_plt), view(p_uniform,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Uniform sample" * errstr )
 	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-	
+
 	errstr = "" #"\n(Δ = " * string(round(Δ_sobol_2d,digits=5)) * ")"
 	plt2 = scatter(view(p_sobol,1,1:max_evals_2d_plt), view(p_sobol,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Sobol sequence" * errstr )
 	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-	
+
 	errstr = "" #"\n(Δ = " * string(round(Δ_lattice_2d,digits=5)) * ")"
 	plt3 = scatter(view(p_lattice,1,1:max_evals_2d_plt), view(p_lattice,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Lattice rule\n" * errstr )
 	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-	
+
 	errstr = "" #"\n(Δ = " * string(round(Δ_lds_2d,digits=5)) * ")"
 	plt4 = scatter(view(p_lds,1,1:max_evals_2d_plt), view(p_lds,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Low discrepancy sequence"*errstr )
 	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
@@ -91,7 +91,7 @@ end
 
 # ╔═╡ 0fd920e1-209e-4456-9f3a-025537fe081d
 md"""
-**Question:**  Which of the stamling strategies above do you expect will provide the most accurate estimate of a Gaussian integral?
+**Question:**  Which of the sampling strategies above do you expect will provide the most accurate estimate of a Gaussian integral?
 """
 
 # ╔═╡ 647d29ed-0c0d-4640-ab96-28a33f4b9814
@@ -123,9 +123,9 @@ md"Minimum of y-axis: $(@bind log10_y_axis_min_2d Slider(-16:-3, default=-6))"
 
 # ╔═╡ 837fdc17-604b-4a48-8039-5a68e6a8a2df
 md"""
-**Question:**  How does the integration error change as you varry the standard deviation of the Gaussians in the target distribution?  
+**Question:**  How does the integration error change as you vary the standard deviation of the Gaussians in the target distribution?  
 
-**Question:**  What are the implications of your findins for analyzing datasets with a large number of observations?
+**Question:**  What are the implications of your findings for analyzing datasets with a large number of observations?
 """
 
 # ╔═╡ 440af812-7000-4f27-9276-94a23c80b735
@@ -162,22 +162,22 @@ nbsp = html"&nbsp;";
 md"Redraw peak locations: $(@bind regen_multipeaks_2d Button()) $nbsp $nbsp "
 
 # ╔═╡ e28ebf18-a1a3-4449-94fb-0dea42093cff
- begin 
+ begin
 	regen_multipeaks_2d
 	const num_peaks_2d = 4
 	const peak_centers_2d = rand(2, num_peaks_2d)
-	function f_multipeaks_2d(x; sigma::Real ) 
+	function f_multipeaks_2d(x; sigma::Real )
 		result = 0.0
 		for i in 1:num_peaks_2d
 			result += exp(-sum((x.-peak_centers_2d[:,i]).^2)/(2*sigma^2))
 		end
 		return result
 	end
-end 
+end
 
 # ╔═╡ f0f87a8d-779b-45e2-bbe9-0b0ccfbfa6d3
 md"""
-Function to use for evaluating: 
+Function to use for evaluating:
 $(@bind func_to_integrate_2d Select([f_gaussian_at_origin => "Gaussian at origin", f_multipeaks_2d => "Multiple Peaks"]; default=f_multipeaks_2d))
 """
 
@@ -197,14 +197,14 @@ Number of dimensions for integrand: $(Child("num_dim", NumberField(1:12, default
 $nbsp $nbsp
 σ: $(Child("sigma", NumberField(0.02:0.02:1.0, default=0.2)))
 $nbsp $nbsp
-log₂(Max evaluations): 
+log₂(Max evaluations):
 $(Child("log2_max_evals", NumberField(8:17, default=14)))  
 """
 	end
 )
 
 # ╔═╡ 3cc73fc1-bec4-4bfa-9094-3a114226468e
-begin 
+begin
 	num_dim = ndim_plt_param.num_dim
 	sigma_err_highd = ndim_plt_param.sigma
 	log2_max_evals = ndim_plt_param.log2_max_evals
@@ -212,11 +212,11 @@ begin
 end;
 
 # ╔═╡ 58788411-f41e-45d7-a11c-88307d82dc57
- begin 
+ begin
 	regen_multipeaks_highd
 	const num_peaks = 4
 	const peak_centers = rand(num_dim, num_peaks)
-	function f_multipeaks(x; sigma::Real) 
+	function f_multipeaks(x; sigma::Real)
 		result = 0.0
 		for i in 1:num_peaks
 			result += exp(-sum((x.-peak_centers[:,i]).^2)/(2*sigma^2))
@@ -226,7 +226,7 @@ end;
 end;
 
 # ╔═╡ 0ff55d52-b17e-42a3-83d0-6cbb1a812f29
-if func_to_integrate_2d == f_multipeaks_2d 
+if func_to_integrate_2d == f_multipeaks_2d
 	func_to_integrate = f_multipeaks
 else
 	func_to_integrate = f_gaussian_at_origin
@@ -267,7 +267,7 @@ end
 function integrate_monte_carlo_serial(f::Function, n::Integer; seed::Integer = 42, num_dim::Integer = 2)
 	#rng = Random.seed!(seed)
 	setRNGs(seed)
-	rng::RNG = getRNG()	
+	rng::RNG = getRNG()
 	result = 0.0
 	tmp = zeros(num_dim)
 	for i in 1:n
@@ -284,7 +284,7 @@ function integrate_monte_carlo_parallel(f::Function, n::Integer; seed::Integer =
 	result_per_thread = zeros(num_threads)
 	n_per_thread = div(n, num_threads )
 	Threads.@threads for t in 1:num_threads
-		local rng::RNG = getRNG()	
+		local rng::RNG = getRNG()
 		arg = zeros(num_dim)
         for i in 1:n_per_thread
 			rand!(rng, arg)
@@ -294,7 +294,7 @@ function integrate_monte_carlo_parallel(f::Function, n::Integer; seed::Integer =
 	result = sum(result_per_thread)
 	if true && ((num_threads * n_per_thread)<n)
 		# Add any extra itterations due to n/num_threads not being an integer
-		local rng::RNG = getRNG()	
+		local rng::RNG = getRNG()
 		for i in (num_threads * n_per_thread):n
 			result += f(rand(rng))
 		end
@@ -346,12 +346,12 @@ function integrate_sobol_parallel(f::Function, n::Integer; num_dim::Integer = 2)
 			result_per_thread[t] += f(arg)
         end
 	end
-	result = sum(result_per_thread) 
+	result = sum(result_per_thread)
 	if ((num_threads * n_per_thread)<n)
 		# Add any extra itterations due to n/num_threads not being an integer
 		local s = SobolSeq(num_dim)
 		local num_to_skip = n_per_thread * num_threads
-		s = skip(s,num_to_skip, exact=true) 
+		s = skip(s,num_to_skip, exact=true)
 		local arg = zeros(num_dim)
 		for i in (num_threads * n_per_thread+1):n
 			next!(s, arg)
@@ -366,18 +366,18 @@ end
 
 # ╔═╡ 7859fa4f-3c5c-425f-9c15-ce0da7a85990
 if use_threads
-	estimates_sobol = integrate_sobol_parallel.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim) 
+	estimates_sobol = integrate_sobol_parallel.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
 else
-	estimates_sobol = integrate_sobol_serial.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim) 
+	estimates_sobol = integrate_sobol_serial.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
 end;
 
 # ╔═╡ 9e6e6850-7320-4cfb-9528-b3467be70a69
 begin
 	plt = plot(yaxis=:log, legend=:bottomleft)
-	
+
 	plot!(plt,log10.(n_to_test_mc), abs.(estimates_mc .- best_estimate)./best_estimate, label="Monte Carlo", markershape=:circle, color=1)
 	plot!(plt,log10.(n_to_test_mc), abs.(estimates_sobol .- best_estimate)./best_estimate, 	label="Sobol", markershape=:circle, alpha=0.5, color=2)
-	plot!(plt,log10.(n_to_test_mc), abs.(estimates_hcubature .- best_estimate)./best_estimate, 
+	plot!(plt,log10.(n_to_test_mc), abs.(estimates_hcubature .- best_estimate)./best_estimate,
 			label="H-Cubature", markershape=:circle, color=3)
 	ylims!(10.0 .^ log10_y_axis_min,2)
 	xlabel!("log₁₀(Number of Evaluations)")
@@ -392,7 +392,7 @@ function integrate_uniform(f::Function, n::Integer; seed::Integer = 42, num_dim:
 	pts =
 		(num_dim==2) && (n<=size(p_uniform,2)) ? p_uniform :  # try to reuse 2-d samples
 		QuasiMonteCarlo.sample(n,zeros(num_dim),ones(num_dim),UniformSample())
-		
+
 	mapreduce(i->f(view(pts,:,i)), +, 1:n)/n
 end
 
@@ -402,7 +402,7 @@ function integrate_sobol(f::Function, n::Integer; seed::Integer = 42, num_dim::I
 	pts =
 		(num_dim==2) && (n<=size(p_sobol,2)) ? p_sobol :  # try to reuse 2-d samples
 		QuasiMonteCarlo.sample(n,zeros(num_dim),ones(num_dim),SobolSample())
-		
+
 	mapreduce(i->f(view(pts,:,i)), +, 1:n)/n
 end
 
@@ -412,13 +412,13 @@ function integrate_lattice(f::Function, n::Integer; seed::Integer = 42, num_dim:
 	pts =
 		(num_dim==2) && (n<=size(p_lattice,2)) ? p_lattice :  # try to reuse 2-d samples
 		QuasiMonteCarlo.sample(n,zeros(num_dim),ones(num_dim),LatticeRuleSample())
-		
+
 	mapreduce(i->f(view(pts,:,i)), +, 1:n)/n
 end
 
 # ╔═╡ 4332698d-3357-405a-8ad9-3bef0ed5ebfd
 function integrate_lds(f::Function, n::Integer; seed::Integer = 42, num_dim::Integer = 2)
-	@assert 1 <= num_dim <= 10 
+	@assert 1 <= num_dim <= 10
 	base = [10,3,7,11,13,17,19,23,31,37][1:num_dim]
 	Random.seed!(seed)
 	pts =
@@ -428,7 +428,7 @@ function integrate_lds(f::Function, n::Integer; seed::Integer = 42, num_dim::Int
 end
 
 # ╔═╡ 6fcce823-2e56-488a-b9e3-bb40aadb11e0
-begin 
+begin
 	Δgauss_uniform_2d(n::Integer) = (integrate_uniform(x->f_gaussian_at_origin(x,sigma=sigma_sample), n)  - best_estimate_2d) / best_estimate_2d
 	Δgauss_sobol_2d(n::Integer) = (integrate_sobol(x->f_gaussian_at_origin(x,sigma=sigma_sample), n)  - best_estimate_2d) / best_estimate_2d
 	Δgauss_lattice_2d(n::Integer) = (integrate_lattice(x->f_gaussian_at_origin(x,sigma=sigma_sample), n)  - best_estimate_2d) / best_estimate_2d
@@ -439,7 +439,7 @@ end;
 (;Δ_uniform = Δgauss_uniform_2d(max_evals_2d_plt), Δ_sobol=Δgauss_sobol_2d(max_evals_2d_plt), Δ_lattice=Δgauss_lattice_2d(max_evals_2d_plt), Δ_lds = Δgauss_lds_2d(max_evals_2d_plt))
 
 # ╔═╡ 05fd15ad-5082-4091-bdf6-1c492c18b09d
-begin 
+begin
 	y_plt_gauss_2d_uniform = abs.(Δgauss_uniform_2d.(n_to_test_mc_2d))
 	y_plt_gauss_2d_sobol = abs.(Δgauss_sobol_2d.(n_to_test_mc_2d))
 	y_plt_gauss_2d_lattice = abs.(Δgauss_lattice_2d.(n_to_test_mc_2d))
@@ -449,7 +449,7 @@ end;
 # ╔═╡ 98e1c267-f13e-4e43-92a7-5e3384ed7c53
 let
 	plt = plot(yaxis=:log, legend=:bottomleft)
-	
+
 	plot!(plt,log10.(n_to_test_mc_2d), y_plt_gauss_2d_uniform, label="Monte Carlo", markershape=:circle, color=1)
 	plot!(plt,log10.(n_to_test_mc_2d), y_plt_gauss_2d_sobol, 	label="Sobol", markershape=:circle, alpha=0.5, color=2)
 	plot!(plt,log10.(n_to_test_mc_2d), y_plt_gauss_2d_lattice, 	label="Lattice", markershape=:circle, alpha=0.5, color=3)
@@ -463,7 +463,7 @@ let
 end
 
 # ╔═╡ 87a5ee82-0287-4003-8d18-d626fd48c7dc
-begin 
+begin
 	best_estimate_alt_2d = hcubature(x->func_to_integrate_2d(x,sigma=sigma_err), zeros(2), ones(2), rtol=eps(Float64), atol=0, maxevals=1_000_000)[1]
 	Δuser_uniform_2d(n::Integer) = (integrate_uniform(x->func_to_integrate_2d(x,sigma=sigma_err), n)  - best_estimate_alt_2d) / best_estimate_alt_2d
 	Δuser_sobol_2d(n::Integer) = (integrate_sobol(x->func_to_integrate_2d(x,sigma=sigma_err), n)  - best_estimate_alt_2d) / best_estimate_alt_2d
@@ -483,7 +483,7 @@ end;
 # ╔═╡ 44dc0410-eef2-4cba-b5d5-a1d849650d47
 let
 	plt = plot(yaxis=:log, legend=:bottomleft)
-	
+
 	plot!(plt,log10.(n_to_test_mc_2d), y_plt_user_2d_uniform, label="Monte Carlo", markershape=:circle, color=1)
 	plot!(plt,log10.(n_to_test_mc_2d), y_plt_user_2d_sobol, 	label="Sobol", markershape=:circle, alpha=0.5, color=2)
 	plot!(plt,log10.(n_to_test_mc_2d), y_plt_user_2d_lattice, 	label="Lattice", markershape=:circle, alpha=0.5, color=3)
@@ -1588,7 +1588,7 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═8c48f025-cd13-4c3a-9bcf-42775ffa783b
+# ╟─8c48f025-cd13-4c3a-9bcf-42775ffa783b
 # ╟─16d063b3-09e3-4dbd-852f-e5e56c4d6c0b
 # ╟─4987b363-c8d0-4f99-b7e9-2a811d1b1956
 # ╟─4750c434-1d5b-48f8-bfe8-3fb087eb1127

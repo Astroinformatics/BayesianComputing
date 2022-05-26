@@ -20,14 +20,14 @@ begin
 
 	using LinearAlgebra, PDMats
 	using Optim, ForwardDiff
-	
+
 	using Turing, Distributions
 	using MCMCChains
-	
+
 	using Plots, StatsPlots, PairPlots, LaTeXStrings, ColorSchemes
 
 	using PlutoUI, HypertextLiteral
-	
+
 	# Set a seed for reproducibility.
 	using Random
 	Random.seed!(0)
@@ -38,7 +38,7 @@ begin
 		import Logging
 		Logging.disable_logging(Logging.Warn)
 	end
-end;	
+end;
 
 # ╔═╡ 1c651c38-d151-11ec-22a6-87180bd6546a
 md"""
@@ -49,14 +49,14 @@ md"""
 
 # ╔═╡ eb9c3330-89a9-4c8e-9eae-cd227599e144
 md"""
-## Overview 
+## Overview
 
 In this lab, we'll analyze measurements of the transit times of the planet Kepler-26b (also known as KOI 250.01) from [Holczer et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016ApJS..225....9H/abstract).  
 First, we'll fit a standard linear model using conventional techniques.  
 Then, we'll demonstrate how to use a probabilistic programming language to model the data more flexibly.  
 
 ### Read the data
-"""	
+"""
 
 # ╔═╡ d49b2d7a-fabe-4525-a11c-8e808960fc96
 begin
@@ -70,7 +70,7 @@ end
 # ╔═╡ 90ae54f1-c49d-4d66-82eb-eb783c389e54
 md"""
 ### Plot the data
-It's often good to make a quick plot to help understand the characteristics of the data.  For this dataset, the transit times ($t$) are very nearly a linear funciton of the transit number ($n$).  While the measurement uncertainties are plotted, it's hard to see them in this plot.  
+It's often good to make a quick plot to help understand the characteristics of the data.  For this dataset, the transit times ($t$) are very nearly a linear function of the transit number ($n$).  While the measurement uncertainties are plotted, it's hard to see them in this plot.  
 """
 
 # ╔═╡ efcabcc4-40ed-4492-b3e4-e190be248fce
@@ -83,8 +83,8 @@ If we did not have access to measurement uncertainties (and were willing to assu
 
 ```math
  \left[ \begin{matrix} t_1   \\ t_2  \\  \vdots  \\  t_{n_{nobs}} \end{matrix} \right]
-= 
-\left[ \begin{matrix} 
+=
+\left[ \begin{matrix}
 	1 & n_1  \\
 	1 & n_2 \\
     \vdots  & \vdots  \\
@@ -111,7 +111,7 @@ $\mathrm{t}_i \sim \mathrm{Normal}(t0 + \mathrm{period} \cdot n_i, \sigma_{t,i}^
 
 We still compute the maximum likelihood esteimates of $b$ accounting for this noise model, using
 $b_{mle}  = (A' {\Sigma}^{-1} A)^{-1} (A' \mathbf{\Sigma}^{-1} y_{obs})$.
-In oour case, the covariance matrix, $\mathbf{\Sigma}, contains $\sigma_{t}$'s along the diagonal (allowing for more efficient calculations than if it were an arbitrary postive definite matrix).
+In this case, the covariance matrix, $\mathbf{\Sigma}, contains $\sigma_{t}$'s along the diagonal (allowing for more efficient calculations than if it were an arbitrary positive definite matrix).
 """
 
 # ╔═╡ f5c117f1-4b46-4262-901d-577de51469c0
@@ -132,26 +132,26 @@ coef_mle_linalg_w_covar .- b_mle_ols
 
 # ╔═╡ f388cf62-5b15-41c3-8f40-ed74dd40e6a9
 md"""
-Since the above calculations reduce to linear algebra, they are very fast (for small to moderate sized datasets like this one).  However, there are some important limitations. 
+Since the above calculations reduce to linear algebra, they are very fast (for small to moderate sized datasets like this one).  However, there are some important limitations.
 
 **Question:**  Think of some scientific reasons why one might need a more flexible approach, even for a dataset where the underlying physics is linear?
 
 !!! hint "Hint"
     - What if we wanted to compute the maximum *a posteriori* value of $b$, $b_{map}$, using non-Gaussian priors?  
     - What if we wanted to compute uncertainties on our model parameters that account for those priors?  
-	- What if we wanted to allow for measurement errors that are non-Gaussian?  
+	  - What if we wanted to allow for measurement errors that are non-Gaussian?  
 
-## Probabilistic Programming Languages	
+## Probabilistic Programming Languages
 **Probabilistic Programming Languages (PPLs)** make it easy for one to specify complex models.  There are many PPLs.  We'll be using [Turing.jl](https://turing.ml/dev/docs/using-turing/quick-start) below.
 """
-	
+
 
 # ╔═╡ 1ac81243-19d4-47a2-8520-a4010ecb63a8
 md"""
 In PPLs, one doesn't specify how to compute the target distribution (e.g., the posterior probability distribution).  Instead, one specifies the distribution of all stochastic variables in a model.  The compiler figures out how to compute the required distributions.  PPLs are one type of a *[declarative programming](https://en.wikipedia.org/wiki/Declarative_programming)* model (as opposed to an imperative programming where one specifies each step of the calculation in order).
 
 While there are inevitably differences in capabilities, efficiency and syntax, most modern PPLs adopt the common notation:
-`x ~ Distribution` 
+`x ~ Distribution`
 to indicate that the random variable $x$ is drawn from a given distribution.  PPLs include many common distributions like `Uniform(a,b)`, `Normal(μ,σ)`, etc.  (Many PPLs now allow you to implement your own distributions, too.)
 
 Inspead the code below for a Turing model for Bayesian linear regression.
@@ -161,7 +161,7 @@ Inspead the code below for a Turing model for Bayesian linear regression.
 @model function linear_regression(x, y, σ_y)
     # Specify priors for model parameters
 	t0 ~ Uniform(0, 1200)               # Time of 0th transit
-    period ~ Uniform(1,100)             # Orbital pperiod
+    period ~ Uniform(1,100)             # Orbital period
 	# Specify liklihood
 	for i ∈ eachindex(y)
 		t_pred = t0 + period * x[i]     # Predicted transit time given t0 and period
@@ -173,7 +173,7 @@ end
 md"""
 Let's pause to note a few things about our model:
 1.  We had to specify prior distributions for our model parameters, `t0` and `period`.  Sometimes just writing your model in a PPL can be helpful because it forces you to be explicit about all your assumptions.  
-2.  Our model is a funciton that takes arguement `x`, `y` and `σ_y`.  For our application these will be arrays containing the transit number, observed transit time and measurement uncertainties. 
+2.  Our model is a function that takes argument `x`, `y` and `σ_y`.  For our application these will be arrays containing the transit number, observed transit time and measurement uncertainties.
 3.  Our model includes standard Julia code, such as the `for` loop over observations and calculating `t_pred`.  (While most PPLs allow for deterministic nodes like `t_pred`, many PPLs are much more restrictive than Turing.)
 """
 
@@ -206,7 +206,7 @@ Since our model might contains many parameters, it would be easy to lose track o
 """
 
 # ╔═╡ 64bd0fcb-9e16-4ecd-ab4f-c0ddf08df0f2
-begin 
+begin
 	period_map = map_estimate.values[:period]
 	t0_map = map_estimate.values[:t0]
 	period_mle = mle_estimate.values[:period]
@@ -242,14 +242,14 @@ md"""
 In this case, we know the posterior will be very nearly Gaussian, but for more complex models, we might want to use Markov chain Monte Carlo (MCMC) methods to compute posterior samples.  We'll demonstrate that below.
 
 (There's a checkbox to turn these calculation on/off, since they can be somewhat slow and increase the latency of interacting with other parts of the notebook.
-There's also a box to select the nubmer of iterations to run the MCMC chains for.  The default value is far too low to use for any scientific purposes.  But it might be wise to see how long it takes the notebook to update on your system, before deciding how many iterations to request.)
+There's also a box to select the number of iterations to run the MCMC chains for.  The default value is far too low to use for any scientific purposes.  But it might be wise to see how long it takes the notebook to update on your system, before deciding how many iterations to request.)
 """
 
 # ╔═╡ d5ece785-d20e-4f91-90b4-74fa8de3d433
 @bind mcmc_linear confirm( PlutoUI.combine() do Child
 	md"""
 I want to run MCMC sampler: $(Child("run", CheckBox()))
-Samples from Markov chain: $(Child("num_iterations",NumberField(100:100:5000, default=100)))	
+Samples from Markov chain: $(Child("num_iterations",NumberField(100:100:5000, default=100)))
 """
 end )
 
@@ -277,7 +277,7 @@ And we can visually inspect the trace plots for our parameters and kernel densit
 """
 
 # ╔═╡ aa4e5b88-cac6-4b0f-8db7-a58c6a9e3bca
-if mcmc_linear.run 
+if mcmc_linear.run
 	plot(chain)
 end
 
@@ -309,7 +309,7 @@ If we wanted to compute a sample from the posterior predictive distribution for 
 """
 
 # ╔═╡ a6b03a32-38d0-4ad0-82a5-1b51d5f4991f
-if mcmc_linear.run 
+if mcmc_linear.run
 	model_given_data_wo_y = linear_regression(df.n, missings(nobs), df.σₜ)
 	pred = predict(model_given_data_wo_y, chain)
 end
@@ -328,12 +328,12 @@ end
 # ╔═╡ d9d67f4f-01db-453a-bf69-5454a432b5fd
 md"""
 ### Testing sensitivity to prior
-Based on what we've seen so far, it may seem that a PPL is primary syntatic sugar.  Everything we've done so far could have been done reasonable some other way.  So why are they useful?  
+Based on what we've seen so far, it may seem that a PPL is primary syntactic sugar.  Everything we've done so far could have been done reasonable some other way.  So why are they useful?  
 PPLs can shine when you want to:
-- Analyze data using a priorthat makes the model non-linear, 
-- Analyze the data using a different model for the measurement errors, 
+- Analyze data using a prior that makes the model non-linear,
+- Analyze the data using a different model for the measurement errors,
 - Test the sensitivity of your results to the choice of prior and/or noise model, or
-- Use a model for which it would be really annoying to try to derive the log likelihood analytically, or 
+- Use a model for which it would be really annoying to try to derive the log likelihood analytically, or
 - Explore several variations on your model rapidly (talking about human time, not computer time).
 
 For example, let's say we wanted to try a different prior for the orbital period.  We could easily build a second model.
@@ -341,7 +341,7 @@ For example, let's say we wanted to try a different prior for the orbital period
 
 # ╔═╡ a10430c3-ed36-4c04-9d81-aca325d46b1d
 md"""
-It looks like each of our parameters has converged. We can check our numerical esimates using `describe(chain)`, as below.
+It looks like each of our parameters has converged. We can check our numerical estimates using `describe(chain)`, as below.
 """
 
 # ╔═╡ 265123e6-f9f2-44f6-b1db-35f903ceaa9f
@@ -357,8 +357,8 @@ end
 @model function linear_regression_alt_prior(x, y, σ_y)
     # Specify priors for model parameters
 	t0 ~ Uniform(0, 1200)               # Time of 0th transit
-    period ~ alt_period_prior           # Alternative prior for orbital pperiod
-	# Specify liklihood
+    period ~ alt_period_prior           # Alternative prior for orbital period
+	# Specify likelihood
 	for i ∈ eachindex(y)
 		t_pred = t0 + period * x[i]     # Predicted transit time given t0 and period
     	y[i] ~ Normal(t_pred, σ_y[i])   # Error model
@@ -372,13 +372,13 @@ model_given_data_alt_prior = linear_regression_alt_prior(df.n, df.t, df.σₜ)
 @bind mcmc_alt_prior confirm( PlutoUI.combine() do Child
 	md"""
 I want to run MCMC sampler w/ alternative prior: $(Child("run", CheckBox()))
-Samples from Markov chain: $(Child("num_iterations",NumberField(100:100:5000, default=100)))	
+Samples from Markov chain: $(Child("num_iterations",NumberField(100:100:5000, default=100)))
 """
 end )
 
 # ╔═╡ 28311f3e-7921-4915-9751-150731d6d504
 if mcmc_alt_prior.run
-	chain_alt_prior = sample(model_given_data_alt_prior, NUTS(0.65), mcmc_alt_prior.num_iterations, init_params=collect(mle_estimate.values)) 
+	chain_alt_prior = sample(model_given_data_alt_prior, NUTS(0.65), mcmc_alt_prior.num_iterations, init_params=collect(mle_estimate.values))
 end
 
 # ╔═╡ 8f3eca15-a2f5-47f9-8f7e-9dadacb2f41a
@@ -397,14 +397,14 @@ md"""
 # ╔═╡ e746194b-63dc-444e-92cc-a2dbecdd6d2f
 md"""
 ### Sensitivity to error model
-Similarly, we can easily swap out the likelihood used for the observations to make different assumptions for the distributions of observations measurements relative to the predicted transit time.  In this case, we'll explore a model where we assume that each observation is affected by a combination of the reported measurement noise and an additional "jitter" which we'll model as i.i.d. Gaussian with unknown variace.  
+Similarly, we can easily swap out the likelihood used for the observations to make different assumptions for the distributions of observations measurements relative to the predicted transit time.  In this case, we'll explore a model where we assume that each observation is affected by a combination of the reported measurement noise and an additional "jitter" which we'll model as i.i.d. Gaussian with unknown variance.  
 """
 
 # ╔═╡ 2e15c59a-d990-453f-baa5-19128573df02
 @model function linear_regression_outliers(x, y, σ_y)
     # Specify priors for model parameters
 	t0 ~ Uniform(0, 1200)               # Time of 0th transit
-    period ~ alt_period_prior           # Alternative prior for orbital pperiod
+  period ~ alt_period_prior           # Alternative prior for orbital period
 	# Specify liklihood
 	hour = 1/24
 	σ_jitter ~ LogNormal(hour, log(2))  # Prior for jitter
@@ -427,14 +427,14 @@ mle_estimate_outliers = optimize(model_given_data_outliers, MLE(), vcat(mle_esti
 @bind mcmc_outliers confirm( PlutoUI.combine() do Child
 	md"""
 I want to run MCMC sampler w/ mixture model likelihood: $(Child("run", CheckBox()))
-Samples from Markov chain: $(Child("num_iterations",NumberField(100:100:5000, default=100)))	
+Samples from Markov chain: $(Child("num_iterations",NumberField(100:100:5000, default=100)))
 """
 end )
 
 # ╔═╡ 4eea70f3-04e7-4da6-bae9-f5cb76daa26c
 if mcmc_outliers.run
 	ten_minutes = 10/(24*60)
-	chain_outliers = sample(model_given_data_outliers, NUTS(0.65), mcmc_outliers.num_iterations, init_params=mle_estimate_outliers.values.array) 
+	chain_outliers = sample(model_given_data_outliers, NUTS(0.65), mcmc_outliers.num_iterations, init_params=mle_estimate_outliers.values.array)
 end
 
 # ╔═╡ d2fe1397-d717-404e-bbd1-74315aa2c079
@@ -458,7 +458,7 @@ Based on the previous analysis, it is clear that our original model was pretty g
 """
 
 # ╔═╡ 2144e594-1055-4a7a-9abc-88ef5d2f3045
-if mcmc_linear.run 
+if mcmc_linear.run
 	mean_posterior_predictive = vec(mean(Array(group(pred,:y)),dims=1));
 	scatter(df.n,(df.t.-mean_posterior_predictive).*24*60,yerr=df.σₜ.*24*60, label=:none)
 	xlabel!("Transit Number")
@@ -540,7 +540,7 @@ end
 """
 
 # ╔═╡ 151e32ce-daeb-4127-8277-f4584d91a698
-md""" 
+md"""
 ### [Bayesian Neural Network](https://turing.ml/dev/tutorials/03-bayesian-neural-network/)
 ```julia
 # Construct a neural network using Flux
@@ -590,8 +590,8 @@ TableOfContents()
 function aside(x)
         @htl("""
                 <style>
-                
-                
+
+
                 @media (min-width: calc(700px + 30px + 300px)) {
                         aside.plutoui-aside-wrapper {
                                 position: absolute;
@@ -603,13 +603,13 @@ function aside(x)
                         }
                 }
                 </style>
-                
+
                 <aside class="plutoui-aside-wrapper">
                 <div>
                 $(x)
                 </div>
                 </aside>
-                
+
                 """)
 end
 
@@ -618,7 +618,7 @@ end
 aside(md"""
 !!! tip "Other PPLs"
     - [STAN](https://mc-stan.org/) has interfaces for Julia, Python, R and the command line),
-    - [PyMC3](https://docs.pymc.io/en/v3/) and [numpyro](https://num.pyro.ai/en/stable/) are two of several options for python users, 
+    - [PyMC3](https://docs.pymc.io/en/v3/) and [numpyro](https://num.pyro.ai/en/stable/) are two of several options for python users,
     - [Nimble](https://r-nimble.org/) for R users, and
     - [Soss.jl](https://github.com/cscherrer/Soss.jl) is another option for Julia users, and
     - many others (e.g., BUGS and JAGS were early PPLs but rarely used for new projects today).
@@ -629,8 +629,8 @@ aside(md"""
 
 # ╔═╡ f93d7f0e-02b0-4935-9f5a-ab93ca28604b
 aside(md"""
-!!! tip "Tweaking Optimization Algorithm" 
-    You likely got warning messages about convergence.  The default results are still good enouguh for our purposes.  If you wanted to dig deeper, the [Turing.jl user guide](https://turing.ml/dev/docs/using-turing/guide#maximum-likelihood-and-maximum-a-posterior-estimates) shows how you can choose your optimization algorithm and pass optional configuration parameters to improve the rate and chances of convergence.
+!!! tip "Tweaking Optimization Algorithm"
+    You likely got warning messages about convergence.  The default results are still good enough for our purposes.  If you wanted to dig deeper, the [Turing.jl user guide](https://turing.ml/dev/docs/using-turing/guide#maximum-likelihood-and-maximum-a-posterior-estimates) shows how you can choose your optimization algorithm and pass optional configuration parameters to improve the rate and chances of convergence.
 """)
 
 # ╔═╡ bc606b9a-0ae9-4517-9262-091ec59a8bf6
@@ -638,7 +638,7 @@ if false  # to create datafile from space delimited file
    lines = readlines("koi250.txt")
 	df1 = DataFrame(map(l->(;n=parse(Int,l[9:12]), t_no_ttv=parse(Float64,l[14:24]), Δt=parse(Float64,l[26:35]), σₜ=parse(Float64,l[39:43])), lines[1:end-1]))
 	df1.t = df1.t_no_ttv .+ df1.Δt./(24*60)
-	
+
    CSV.write("koi250.01.csv", df1[!, [:n, :t, :σₜ, :t_no_ttv, :Δt]])
 end;
 
