@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.5
+# v0.19.4
 
 using Markdown
 using InteractiveUtils
@@ -111,11 +111,7 @@ $\mathrm{t}_i \sim \mathrm{Normal}(t0 + \mathrm{period} \cdot n_i, \sigma_{t,i}^
 
 We still compute the maximum likelihood esteimates of $b$ accounting for this noise model, using
 $b_{mle}  = (A' {\Sigma}^{-1} A)^{-1} (A' \mathbf{\Sigma}^{-1} y_{obs})$.
-In this case, the covariance matrix, $\mathbf{\Sigma}, contains $\sigma_{t}$'s along the diagonal (allowing for more efficient calculations than if it were an arbitrary positive definite matrix).
-"""
-
-# ╔═╡ f5c117f1-4b46-4262-901d-577de51469c0
-md"""
+In this case, the covariance matrix, $\mathbf{\Sigma}$, contains $\sigma_{t}$'s along the diagonal (allowing for more efficient calculations than if it were an arbitrary positive definite matrix).
 """
 
 # ╔═╡ a77dd7a7-c9f7-4a93-9b85-207f88196650
@@ -130,7 +126,7 @@ md"(While the results are similar, there is a small difference.)"
 # ╔═╡ 8c73c50f-6f60-4ca8-a1d2-71e31f39b859
 coef_mle_linalg_w_covar .- b_mle_ols
 
-# ╔═╡ f388cf62-5b15-41c3-8f40-ed74dd40e6a9
+# ╔═╡ 68532fbf-f5bd-4fae-ae63-0000a9b64e12
 md"""
 Since the above calculations reduce to linear algebra, they are very fast (for small to moderate sized datasets like this one).  However, there are some important limitations.
 
@@ -139,12 +135,14 @@ Since the above calculations reduce to linear algebra, they are very fast (for s
 !!! hint "Hint"
     - What if we wanted to compute the maximum *a posteriori* value of $b$, $b_{map}$, using non-Gaussian priors?  
     - What if we wanted to compute uncertainties on our model parameters that account for those priors?  
-	  - What if we wanted to allow for measurement errors that are non-Gaussian?  
+	- What if we wanted to allow for measurement errors that are non-Gaussian?  
+"""
 
+# ╔═╡ 504f77c4-41db-4f70-b402-380fde67410d
+md"""
 ## Probabilistic Programming Languages
 **Probabilistic Programming Languages (PPLs)** make it easy for one to specify complex models.  There are many PPLs.  We'll be using [Turing.jl](https://turing.ml/dev/docs/using-turing/quick-start) below.
 """
-
 
 # ╔═╡ 1ac81243-19d4-47a2-8520-a4010ecb63a8
 md"""
@@ -2358,11 +2356,11 @@ version = "0.9.1+5"
 # ╠═7242adfc-a0bc-4603-ae8a-8198e5647c6d
 # ╠═939c5578-3806-4938-9f24-8cb4cf8afe90
 # ╟─3221c380-e04f-4822-ac5f-48add15aa757
-# ╠═f5c117f1-4b46-4262-901d-577de51469c0
 # ╠═a77dd7a7-c9f7-4a93-9b85-207f88196650
 # ╟─2190ad8c-5a49-43da-a1b7-efa8c22205d0
 # ╠═8c73c50f-6f60-4ca8-a1d2-71e31f39b859
-# ╟─f388cf62-5b15-41c3-8f40-ed74dd40e6a9
+# ╟─68532fbf-f5bd-4fae-ae63-0000a9b64e12
+# ╟─504f77c4-41db-4f70-b402-380fde67410d
 # ╟─67ec0992-dd54-4172-b198-84bd61b7f48b
 # ╟─1ac81243-19d4-47a2-8520-a4010ecb63a8
 # ╠═b8ab2460-7c59-4e87-8580-e7b49f0576aa
