@@ -104,7 +104,7 @@ b_mle_ols = A \ df.t
 
 # ╔═╡ 3221c380-e04f-4822-ac5f-48add15aa757
 md"""
-In astronomy, we often have (estiamtes of) measurement uncertainties.  In this case, the dataset provides an estimated standard deviation for each measurement, $\sigma_t$.  
+In astronomy, we often have (estimates of) measurement uncertainties.  In this case, the dataset provides an estimated standard deviation for each measurement, $\sigma_t$.  
 Our model for each observation is
 
 $\mathrm{t}_i \sim \mathrm{Normal}(t0 + \mathrm{period} \cdot n_i, \sigma_{t,i}^2)$
