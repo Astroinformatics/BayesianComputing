@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.4
+# v0.19.5
 
 using Markdown
 using InteractiveUtils
@@ -104,7 +104,7 @@ b_mle_ols = A \ df.t
 
 # ╔═╡ 3221c380-e04f-4822-ac5f-48add15aa757
 md"""
-In astronomy, we often have (estimates of) measurement uncertainties.  In this case, the dataset provides an estimated standard deviation for each measurement, $\sigma_t$.  
+In astronomy, we often have (estiamtes of) measurement uncertainties.  In this case, the dataset provides an estimated standard deviation for each measurement, $\sigma_t$.  
 Our model for each observation is
 
 $\mathrm{t}_i \sim \mathrm{Normal}(t0 + \mathrm{period} \cdot n_i, \sigma_{t,i}^2)$
@@ -684,7 +684,7 @@ Turing = "~0.21.1"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.0"
+julia_version = "1.7.2"
 manifest_format = "2.0"
 
 [[deps.AbstractFFTs]]
@@ -2425,7 +2425,7 @@ version = "0.9.1+5"
 # ╟─151e32ce-daeb-4127-8277-f4584d91a698
 # ╟─a480bd7a-a4a9-43c7-81f5-77d15ec16289
 # ╠═ab655734-a8b7-47db-9b73-4099c4b11dfc
-# ╠═d78db46d-1e20-4cd1-be53-81f635561b27
+# ╟─d78db46d-1e20-4cd1-be53-81f635561b27
 # ╟─deb1a219-f33c-469c-98a9-5bab181e4a43
 # ╟─bc606b9a-0ae9-4517-9262-091ec59a8bf6
 # ╟─00000000-0000-0000-0000-000000000001
