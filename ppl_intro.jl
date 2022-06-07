@@ -42,7 +42,7 @@ end;
 
 # ╔═╡ 1c651c38-d151-11ec-22a6-87180bd6546a
 md"""
-# Lab 11: Probabilistic Programming Languages
+# Lab 12: Probabilistic Programming Languages
 #### [Penn State Astroinformatics Summer School 2022](https://sites.psu.edu/astrostatistics/astroinfo-su22-program/)
 #### [Eric Ford](https://www.personal.psu.edu/ebf11)
 """
