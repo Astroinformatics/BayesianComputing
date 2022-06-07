@@ -33,7 +33,8 @@ Summer School participants will be provided instructions for accessing a Pluto s
 julia> using Pkg
 julia> Pkg.add("Pluto")
 ```
-Steps 1 & 3 only need to be done once per computer.
+(Steps 1 & 3 only need to be done once per computer.)
+
 4.  Start Pluto
 ```julia
 julia> using Pluto
