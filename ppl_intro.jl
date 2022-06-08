@@ -70,7 +70,7 @@ end
 # ╔═╡ 90ae54f1-c49d-4d66-82eb-eb783c389e54
 md"""
 ### Plot the data
-It's often good to make a quick plot to help understand the characteristics of the data.  For this dataset, the transit times ($t$) are very nearly a linear function of the transit number ($n$).  While the measurement uncertainties are plotted, it's hard to see them in this plot.  
+It's often good to make a quick plot to help understand the characteristics of the data.  For this data set, the transit times ($t$) are very nearly a linear function of the transit number ($n$).  While the measurement uncertainties are plotted, it's hard to see them in this plot.  
 """
 
 # ╔═╡ efcabcc4-40ed-4492-b3e4-e190be248fce
@@ -104,12 +104,12 @@ b_mle_ols = A \ df.t
 
 # ╔═╡ 3221c380-e04f-4822-ac5f-48add15aa757
 md"""
-In astronomy, we often have (estiamtes of) measurement uncertainties.  In this case, the dataset provides an estimated standard deviation for each measurement, $\sigma_t$.  
+In astronomy, we often have (estiamtes of) measurement uncertainties.  In this case, the data set provides an estimated standard deviation for each measurement, $\sigma_t$.  
 Our model for each observation is
 
 $\mathrm{t}_i \sim \mathrm{Normal}(t0 + \mathrm{period} \cdot n_i, \sigma_{t,i}^2)$
 
-We still compute the maximum likelihood esteimates of $b$ accounting for this noise model, using
+We still compute the maximum likelihood estimates of $b$ accounting for this noise model, using
 $b_{mle}  = (A' {\Sigma}^{-1} A)^{-1} (A' \mathbf{\Sigma}^{-1} y_{obs})$.
 In this case, the covariance matrix, $\mathbf{\Sigma}$, contains $\sigma_{t}$'s along the diagonal (allowing for more efficient calculations than if it were an arbitrary positive definite matrix).
 """
@@ -128,9 +128,9 @@ coef_mle_linalg_w_covar .- b_mle_ols
 
 # ╔═╡ 68532fbf-f5bd-4fae-ae63-0000a9b64e12
 md"""
-Since the above calculations reduce to linear algebra, they are very fast (for small to moderate sized datasets like this one).  However, there are some important limitations.
+Since the above calculations reduce to linear algebra, they are very fast (for small to moderate sized data sets like this one).  However, there are some important limitations.
 
-**Question:**  Think of some scientific reasons why one might need a more flexible approach, even for a dataset where the underlying physics is linear?
+**Question:**  Think of some scientific reasons why one might need a more flexible approach, even for a data set where the underlying physics is linear?
 
 !!! hint "Hint"
     - What if we wanted to compute the maximum *a posteriori* value of $b$, $b_{map}$, using non-Gaussian priors?  
@@ -146,13 +146,15 @@ md"""
 
 # ╔═╡ 1ac81243-19d4-47a2-8520-a4010ecb63a8
 md"""
-In PPLs, one doesn't specify how to compute the target distribution (e.g., the posterior probability distribution).  Instead, one specifies the distribution of all stochastic variables in a model.  The compiler figures out how to compute the required distributions.  PPLs are one type of a *[declarative programming](https://en.wikipedia.org/wiki/Declarative_programming)* model (as opposed to an imperative programming where one specifies each step of the calculation in order).
+In PPLs, one doesn't specify how to compute the target distribution (e.g., the posterior probability distribution).  Instead, one specifies the distribution of all stochastic variables in a model.  The compiler figures out how to compute the required distributions.  
 
 While there are inevitably differences in capabilities, efficiency and syntax, most modern PPLs adopt the common notation:
 `x ~ Distribution`
 to indicate that the random variable $x$ is drawn from a given distribution.  PPLs include many common distributions like `Uniform(a,b)`, `Normal(μ,σ)`, etc.  (Many PPLs now allow you to implement your own distributions, too.)
 
-Inspead the code below for a Turing model for Bayesian linear regression.
+Some PPLs go so far as using a *[declarative programming](https://en.wikipedia.org/wiki/Declarative_programming)* model (as opposed to an imperative programming where one specifies each step of the calculation in order).  This can create some limitations (e.g., can't interoperate with functions to perform non-standard mathematical calculations).  Turing takes an approach where the order of commands does matter (e.g., you can only access a variable after it has been assigned a value or a distribution).  Turing still figures out how to sample from the prior and posterior probability distributions for the programmer.
+
+Inspect the code below for a Turing model for Bayesian linear regression.
 """
 
 # ╔═╡ b8ab2460-7c59-4e87-8580-e7b49f0576aa
@@ -262,7 +264,7 @@ Here we used the No U-Turn Sampler ([NUTS](http://turing.ml/docs/library/#-turin
 """
 
 # ╔═╡ e881c5af-b1da-45e6-8e43-fd81ac8f0daf
-md"The sampler returns the results of one (or more) MCMC chains that can be used for inference.  For example, we can get some summary statistics about the model parameters and their convergence diagnostics.  For this model and dataset, the mean parameter values should be quite close to the results of our previous estimates above."
+md"The sampler returns the results of one (or more) MCMC chains that can be used for inference.  For example, we can get some summary statistics about the model parameters and their convergence diagnostics.  For this model and data set, the mean parameter values should be quite close to the results of our previous estimates above."
 
 # ╔═╡ 1731226b-ae56-4966-a949-1feb182fd315
 if mcmc_linear.run
@@ -489,8 +491,22 @@ This model requires much longer Markov chains to converge, so you probably don't
 Nevertheless, this demonstrates the power of PPLs.  It's easy to rapidly try out different assumptions and models.
 """
 
+# ╔═╡ f8524ec7-32cc-4e39-a0b5-eadf5d9b2dd4
+md"""
+# Next Steps
+
+## Additional Astronomical Applicaitons
+As PPLs become more powerful, Astronomers have started making more use of them.  For a few examples in the astronomical literature, see:
+- [Buchner et al. (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...802...89B/abstract)
+- [Wolfgang et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016ApJ...825...19W/abstract)
+- [Hurley et al. (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.464..885H/abstract)
+- [Mandel et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.486.1086M/abstract)
+
+
+"""
+
 # ╔═╡ 7e7f1004-9c33-42f2-8b5f-15014e3d5c42
-md"""## More Example Models
+md"""## More Example Turing Models
 The Turing manual has examples of how to implement several other common several other machine learning algorithms inside Turing.  Here are just a few algorithms that you'll recognize from other lessons.
 """
 
@@ -2419,6 +2435,7 @@ version = "0.9.1+5"
 # ╟─cd862907-3590-4b05-8715-797c2edae0bc
 # ╠═f379a950-18f2-439f-8c36-53ce8e461247
 # ╟─78a2895d-b059-469a-b3a7-1bacf7248757
+# ╟─f8524ec7-32cc-4e39-a0b5-eadf5d9b2dd4
 # ╟─7e7f1004-9c33-42f2-8b5f-15014e3d5c42
 # ╟─e970ad2b-c75a-4e37-9f09-b1075fa183cf
 # ╟─73a2a248-1e68-4980-9797-0b5612047184
