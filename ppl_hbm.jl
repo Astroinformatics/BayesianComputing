@@ -57,15 +57,15 @@ md"""
 ## Overview
 
 In this lab, we'll analyze the eccentricity distribution of a population of planets using a hierarchical Bayesian Model and the Turing probabilistic programming language.  
-You'll be able to generate synthetic datasets from multiple intrinsic distributions, choose the magnitude of measurement uncertainties, and compare the true intrinsic distribution to the inferred distribution.  
+You'll be able to generate synthetic data sets from multiple intrinsic distributions, choose the magnitude of measurement uncertainties, and compare the true intrinsic distribution to the inferred distribution.  
 """
 
 # ╔═╡ 63a4e3e4-1645-4715-90b1-b708379706ef
 md"""
-## Set Properties of the Synthetic Dataset
+## Set Properties of the Synthetic Data set
 First, you'll select a model to use for generating a synthetic population of planets.
 Second, you'll set the prior values needed by that model.
-Then, you'll set the number of planets to include in our synthetic dataset and the magnitude of measurement uncertainties.  
+Then, you'll set the number of planets to include in our synthetic data set and the magnitude of measurement uncertainties.  
 """
 
 # ╔═╡ 2487706a-f408-4cc4-901a-f2b72fe562d4
@@ -370,7 +370,7 @@ aside(md"""
 !!! tip "Tip:  Choices here affect calculation time below"
 	Both the number of planets in our sample (set here) and the length of the Markov chains (set later) that you choose will affect the run-time (roughly proportional to the product for a given mode).  
 
-	It's suggested that you start with a small dataset, so you get more prompt feedback (even if the Markov chains still show some signs that they haven't fully converged and you wouldn't use them in a science paper). Near the end of the lab, you may want to try analyzing a larger dataset and/or running a longer MCMC calculations (e.g., while you take a coffee break).
+	It's suggested that you start with a small data set, so you get more prompt feedback (even if the Markov chains still show some signs that they haven't fully converged and you wouldn't use them in a science paper). Near the end of the lab, you may want to try analyzing a larger data set and/or running a longer MCMC calculations (e.g., while you take a coffee break).
 """)
 
 # ╔═╡ c8ea0fb7-f8e6-4cdf-b81b-b1eb9d3a5f7d

@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.5
+# v0.19.6
 
 using Markdown
 using InteractiveUtils
@@ -53,7 +53,11 @@ md"""
 
 In this lab, we'll analyze measurements of the transit times of the planet Kepler-26b (also known as KOI 250.01) from [Holczer et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016ApJS..225....9H/abstract).  
 First, we'll fit a standard linear model using conventional techniques.  
-Then, we'll demonstrate how to use a probabilistic programming language to model the data more flexibly.  
+Then, we'll demonstrate how to use a probabilistic programming language (PPL) to model the data.  
+You'll see how we can use the PPL to easily revise the model to consider alternative choices for the prior distribution and/or likelihood.   
+You'll get a chance to compare the posterior samples and posterior predictive distributions based.  
+
+The purpose of this lab is for you to appreciate how using a PPL provides greater modeling flexibility that deriving results analytically.  Thus, you can efficiently explore your data using multiple statistical models to better understand the sensitivity of your results to the inevitable assumptions.  
 
 ### Read the data
 """
@@ -700,7 +704,7 @@ Turing = "~0.21.1"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.2"
+julia_version = "1.7.0"
 manifest_format = "2.0"
 
 [[deps.AbstractFFTs]]

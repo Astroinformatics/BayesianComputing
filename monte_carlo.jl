@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.5
+# v0.19.6
 
 using Markdown
 using InteractiveUtils
@@ -33,9 +33,20 @@ md"""
 #### [Eric Ford](https://www.personal.psu.edu/ebf11)
 """
 
+# ╔═╡ 1c649b98-5abf-4054-abcc-73b8c9b45cf7
+md"""
+## Overview
+In this lab, you'll compare different sampling strategies for evaluating integrals.  
+After buidling intuition visually in two dimensions, then you'll compare how different integration algorithms perform in higher dimensions.
+"""
+
 # ╔═╡ 16d063b3-09e3-4dbd-852f-e5e56c4d6c0b
 md"""
 ## Sampling Patterns in 2-d
+First, imagine that you want to evaluate an integral of a probability distribution whose log likelihood contours are shown below.  
+The Bayesian computing lesson discussed Monte Carlo sampling for approximating integrals numerically based on a sequence of random (or pseudo-random) numbers.  
+As you increase the number of samples, eventually the estimate of the integral converges to the true value.  But the convergence can be slow.
+We also show some alternative sampling strategies, such as using a quasi-random sequences (e.g., the Sobol sequence), using a lattice rule or a *lowdiscrepancy sequence*.  It's easiest to compare them visually, by seeing how points are distributed as the number of sampling points increases.
 """
 
 # ╔═╡ 4987b363-c8d0-4f99-b7e9-2a811d1b1956
@@ -44,6 +55,89 @@ function f_gaussian_at_origin(x; sigma::Real = 1.0)
 	result /= 2π*sigma^2
 	return result
 end
+
+# ╔═╡ 8215ae2e-988f-4ed3-92d5-610d2bbc6056
+md"Standard deviation of normal distribution: $(@bind sigma_sample  confirm(NumberField(0.02:0.02:1, default=0.1)))"
+
+# ╔═╡ 0fd920e1-209e-4456-9f3a-025537fe081d
+md"""
+**Question:**  Based on the visualizations above, which of the sampling strategies above do you expect will provide the most accurate estimate of a Gaussian integral?
+"""
+
+# ╔═╡ ce930bb7-5e9d-4a62-87f0-7570e1680eeb
+md"Below we compare the difference of the estimate from each method to our best approximation of the answer."
+
+# ╔═╡ 647d29ed-0c0d-4640-ab96-28a33f4b9814
+md"""
+## Integration Error in 2-d
+Next, we will explore how the error decreases as we increase the number of samples.  We'll start with a the same 2-d example as above.
+
+### Normal distribution at origin
+"""
+
+# ╔═╡ f570b0d7-36cc-456d-a056-f6f2ebc25b97
+#log2_max_evals_2d = 14
+md"log₂ maximum evaluations: $(@bind log2_max_evals_2d NumberField(8:16, default=15))"
+
+# ╔═╡ d9760730-89a2-43b3-a076-8cc48ed4c286
+md"""
+**Question:**  How does the convergence rate of standard Monte Carlo integration compare to using a quaesi-random sequence?  
+
+**Question:** Is the choice of integration method more likely to be important for a case cases where you can accept low accuracy estimate or where you need a high-accuracy estimate?
+"""
+
+# ╔═╡ b3cd3ea8-7acd-4695-8521-4a1939308ef5
+md"""
+### Alternative function in 2-d
+In practice, our integrands are usually more complicated than a single Gaussian.  Below, you can generate multi-modal distributions and compare how the different integration algorithms perform in more representative integrands.
+"""
+
+# ╔═╡ 5fb9905a-6562-4d6d-af30-e4c9aca17723
+begin
+	md"Standard deviation of each Gaussian: $(@bind sigma_err confirm(NumberField(0.02:0.02:0.5, default=0.1)))"
+end
+
+# ╔═╡ d0f920e4-3448-494b-9620-3b39859a113f
+md"Minimum of y-axis: $(@bind log10_y_axis_min_2d Slider(-16:-3, default=-6))"
+
+# ╔═╡ 837fdc17-604b-4a48-8039-5a68e6a8a2df
+md"""
+**Question:**  How does the integration error change as you vary the standard deviation of the Gaussians in the target distribution?  
+
+**Question:**  What are the implications of your findings for analyzing datasets with a large number of observations?
+"""
+
+# ╔═╡ 440af812-7000-4f27-9276-94a23c80b735
+md"""
+# Integration Error in Higher Dimensions
+Finally, we'll consider increasing the dimensionality of the integrand.  
+"""
+
+# ╔═╡ 6bfb3b7c-5021-4910-93fb-0dc4325ce1ac
+md"Redraw peak locations: $(@bind regen_multipeaks_highd Button())"
+
+# ╔═╡ 6c776177-f29d-4fa8-83e2-6fcc1bbb542e
+md"minimum y-axis: $(@bind log10_y_axis_min Slider(-16:-3, default=-6))"
+
+# ╔═╡ 936c7b13-ae2a-432d-88b3-a7f504ffe9ba
+md"""
+**Question:**  How does the error of standard Monte Carlo method change as you increase the number of dimensions?  
+
+**Question:**  How does the error of integration using Sobol sampling change as you increase the number of dimensions?  
+
+**Question:** H-Cubature is a type of adaptive quadrature.  How does it compare to integration via Sobol sampling for a few to several dimensions?  What about for ∼10-12 dimensions?
+
+**Question:**  What are the implications of your findings for analyzing data sets with a large number of model parameters?
+"""
+
+# ╔═╡ fa7061f2-1126-4965-8915-60474759ff41
+md"# Setup & Helper Code"
+
+# ╔═╡ 822c11e1-c64a-4400-91ea-f78a51553216
+use_threads = true
+
+# ╔═╡ 2ff8b895-cc26-4c9a-97a4-84b4aa010cb1
+md"### Plot of Sampling Pattern"
 
 # ╔═╡ 4750c434-1d5b-48f8-bfe8-3fb087eb1127
 max_evals_2d_error_plt = 2^16;
@@ -63,16 +157,13 @@ max_max_evals_2d_plt = 2000;
 # ╔═╡ 1d6bbc7f-707f-43cf-a09c-b636f714ee35
 md"Number of samples: $(@bind max_evals_2d_plt Slider(1:max_max_evals_2d_plt; default=1))"
 
-# ╔═╡ 8215ae2e-988f-4ed3-92d5-610d2bbc6056
-md"Standard deviation of normal distribution: $(@bind sigma_sample  confirm(NumberField(0.02:0.02:1, default=0.1)))"
-
 # ╔═╡ e650a01a-de89-464f-886e-ffdda6ad26c3
 let
 	ms = 1
 	pltsize = (800,800)
 	plt_x = plt_y = range(0, stop = 1, length = 100)
 	errstr = "" #"\n(Δ = " * string(round(Δ_uniform_2d,digits=5)) * ")"
-	plt1 = scatter(view(p_uniform,1,1:max_evals_2d_plt), view(p_uniform,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Uniform sample" * errstr )
+	plt1 = scatter(view(p_uniform,1,1:max_evals_2d_plt), view(p_uniform,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Monte Carlo\n(Uniform sample)" * errstr )
 	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
 
 	errstr = "" #"\n(Δ = " * string(round(Δ_sobol_2d,digits=5)) * ")"
@@ -89,68 +180,23 @@ let
 	plot(plt1, plt2, plt3, plt4)
 end
 
-# ╔═╡ 0fd920e1-209e-4456-9f3a-025537fe081d
-md"""
-**Question:**  Which of the sampling strategies above do you expect will provide the most accurate estimate of a Gaussian integral?
-"""
-
-# ╔═╡ 647d29ed-0c0d-4640-ab96-28a33f4b9814
-md"""
-## Integration Error in 2-d
-### Normal distribution at origin
-"""
+# ╔═╡ 9c7848f8-1c8b-4c05-a859-a2e32dcf4e90
+md"### Error plot: 2-d Normal distribution"
 
 # ╔═╡ 4c7942f1-ef77-460b-a40d-24a0c8961cdb
-best_estimate_2d = hcubature(x->f_gaussian_at_origin(x,sigma=sigma_sample), zeros(2), ones(2), rtol=eps(Float64), atol=0, maxevals=1_000_000)[1]
-
-# ╔═╡ f570b0d7-36cc-456d-a056-f6f2ebc25b97
-#log2_max_evals_2d = 14
-md"log₂ maximum evaluations: $(@bind log2_max_evals_2d NumberField(8:16, default=15))"
+best_estimate_2d = hcubature(x->f_gaussian_at_origin(x,sigma=sigma_sample), zeros(2), ones(2), rtol=eps(Float64), atol=0, maxevals=1_000_000)[1];
 
 # ╔═╡ e89d3d18-b3a8-490b-96f1-6fdf792178ac
 n_to_test_mc_2d = 2 .^(1:log2_max_evals_2d);
 
-# ╔═╡ b3cd3ea8-7acd-4695-8521-4a1939308ef5
-md"### Alternative function in 2-d"
+# ╔═╡ 346ebd04-987c-4692-b899-1e500f56975b
+md"### Error plot: 2-d Multiple Peaks"
 
-# ╔═╡ 5fb9905a-6562-4d6d-af30-e4c9aca17723
-begin
-	md"Standard deviation of each Gaussian: $(@bind sigma_err confirm(NumberField(0.02:0.02:0.5, default=0.1)))"
-end
+# ╔═╡ 210cc590-52bd-43c4-a4e5-6c064f5a895b
+md"### Error plot: High-d"
 
-# ╔═╡ d0f920e4-3448-494b-9620-3b39859a113f
-md"Minimum of y-axis: $(@bind log10_y_axis_min_2d Slider(-16:-3, default=-6))"
-
-# ╔═╡ 837fdc17-604b-4a48-8039-5a68e6a8a2df
-md"""
-**Question:**  How does the integration error change as you vary the standard deviation of the Gaussians in the target distribution?  
-
-**Question:**  What are the implications of your findings for analyzing datasets with a large number of observations?
-"""
-
-# ╔═╡ 440af812-7000-4f27-9276-94a23c80b735
-md"## Integration Error in Higher Dimensions"
-
-# ╔═╡ 6bfb3b7c-5021-4910-93fb-0dc4325ce1ac
-md"Redraw peak locations: $(@bind regen_multipeaks_highd Button())"
-
-# ╔═╡ 6c776177-f29d-4fa8-83e2-6fcc1bbb542e
-md"minimum y-axis: $(@bind log10_y_axis_min Slider(-16:-3, default=-6))"
-
-# ╔═╡ 936c7b13-ae2a-432d-88b3-a7f504ffe9ba
-md"""
-**Question:**  How does the error of standard Monte Carlo method change as you increase the number of dimensions?  Integration using Sobol sampling?  
-
-**Question:** H-Cubature is a type of adaptive quadrature.  How does it compare to integration via Sobol sampling for a few to several dimensions?  What about for ∼10-12 dimensions?
-
-**Question:**  What are the implications of your findings for analyzing datasets with a large number of model parameters?
-"""
-
-# ╔═╡ fa7061f2-1126-4965-8915-60474759ff41
-md"# Setup & Helper Code"
-
-# ╔═╡ 822c11e1-c64a-4400-91ea-f78a51553216
-use_threads = true
+# ╔═╡ 4df8579f-9757-488e-8103-44e2ed680cb2
+md"### Apperances"
 
 # ╔═╡ d5f5fbe6-b75b-4874-bb20-e562287ed51b
 TableOfContents()
@@ -173,13 +219,8 @@ md"Redraw peak locations: $(@bind regen_multipeaks_2d Button()) $nbsp $nbsp "
 		end
 		return result
 	end
-end
-
-# ╔═╡ f0f87a8d-779b-45e2-bbe9-0b0ccfbfa6d3
-md"""
-Function to use for evaluating:
-$(@bind func_to_integrate_2d Select([f_gaussian_at_origin => "Gaussian at origin", f_multipeaks_2d => "Multiple Peaks"]; default=f_multipeaks_2d))
-"""
+	func_to_integrate_2d = f_multipeaks_2d
+ end;
 
 # ╔═╡ d8a19f6d-da16-486a-a705-b907c454b0e3
 let
@@ -1589,31 +1630,23 @@ version = "0.9.1+5"
 
 # ╔═╡ Cell order:
 # ╟─8c48f025-cd13-4c3a-9bcf-42775ffa783b
+# ╟─1c649b98-5abf-4054-abcc-73b8c9b45cf7
 # ╟─16d063b3-09e3-4dbd-852f-e5e56c4d6c0b
 # ╟─4987b363-c8d0-4f99-b7e9-2a811d1b1956
-# ╟─4750c434-1d5b-48f8-bfe8-3fb087eb1127
-# ╟─eaab2562-0081-426b-9087-524c57cd7c2c
 # ╟─e650a01a-de89-464f-886e-ffdda6ad26c3
 # ╟─1d6bbc7f-707f-43cf-a09c-b636f714ee35
-# ╟─4b078935-4ae8-4645-a676-b4d93096a0e8
 # ╟─8215ae2e-988f-4ed3-92d5-610d2bbc6056
 # ╟─0fd920e1-209e-4456-9f3a-025537fe081d
+# ╟─ce930bb7-5e9d-4a62-87f0-7570e1680eeb
 # ╟─be807633-68c7-4b9a-91f7-a8cdaee56814
 # ╟─647d29ed-0c0d-4640-ab96-28a33f4b9814
 # ╟─98e1c267-f13e-4e43-92a7-5e3384ed7c53
-# ╟─4c7942f1-ef77-460b-a40d-24a0c8961cdb
-# ╟─6fcce823-2e56-488a-b9e3-bb40aadb11e0
 # ╟─f570b0d7-36cc-456d-a056-f6f2ebc25b97
-# ╟─e89d3d18-b3a8-490b-96f1-6fdf792178ac
-# ╟─05fd15ad-5082-4091-bdf6-1c492c18b09d
+# ╟─d9760730-89a2-43b3-a076-8cc48ed4c286
 # ╟─b3cd3ea8-7acd-4695-8521-4a1939308ef5
-# ╟─e28ebf18-a1a3-4449-94fb-0dea42093cff
-# ╟─f0f87a8d-779b-45e2-bbe9-0b0ccfbfa6d3
 # ╟─d8a19f6d-da16-486a-a705-b907c454b0e3
 # ╟─5fb9905a-6562-4d6d-af30-e4c9aca17723
 # ╟─3da61e81-2619-4206-be08-38ed262cb517
-# ╟─87a5ee82-0287-4003-8d18-d626fd48c7dc
-# ╟─39b132ea-e49c-4641-8293-55f59ee649df
 # ╟─44dc0410-eef2-4cba-b5d5-a1d849650d47
 # ╟─d0f920e4-3448-494b-9620-3b39859a113f
 # ╟─837fdc17-604b-4a48-8039-5a68e6a8a2df
@@ -1624,17 +1657,9 @@ version = "0.9.1+5"
 # ╟─9e6e6850-7320-4cfb-9528-b3467be70a69
 # ╟─6c776177-f29d-4fa8-83e2-6fcc1bbb542e
 # ╟─936c7b13-ae2a-432d-88b3-a7f504ffe9ba
-# ╟─3cc73fc1-bec4-4bfa-9094-3a114226468e
-# ╟─58788411-f41e-45d7-a11c-88307d82dc57
-# ╟─0ff55d52-b17e-42a3-83d0-6cbb1a812f29
-# ╟─d09876c9-7181-4d58-8fff-82453e43541c
-# ╟─7859fa4f-3c5c-425f-9c15-ce0da7a85990
-# ╟─00b690af-20f4-43ea-afae-28d655c8ea13
 # ╟─fa7061f2-1126-4965-8915-60474759ff41
 # ╠═0a7ccbce-d228-11ec-34a3-1fc3ac51f1a8
 # ╟─822c11e1-c64a-4400-91ea-f78a51553216
-# ╟─d5f5fbe6-b75b-4874-bb20-e562287ed51b
-# ╟─a0a1ca74-3c26-461b-8ae6-b0a4b8caa53e
 # ╟─59f92f75-04f0-4e1a-820e-d05a27104f25
 # ╟─c3855f10-c085-4c22-afab-20444f5c7e1e
 # ╟─bb44e7b0-2da9-4622-8f50-0fb4870188bb
@@ -1645,5 +1670,28 @@ version = "0.9.1+5"
 # ╟─638a3cf6-82ba-4411-a702-d0cde64e567b
 # ╟─96713364-ebb1-4b9b-bb5e-0ff9d14bc1cf
 # ╟─4332698d-3357-405a-8ad9-3bef0ed5ebfd
+# ╟─2ff8b895-cc26-4c9a-97a4-84b4aa010cb1
+# ╠═4750c434-1d5b-48f8-bfe8-3fb087eb1127
+# ╠═eaab2562-0081-426b-9087-524c57cd7c2c
+# ╠═4b078935-4ae8-4645-a676-b4d93096a0e8
+# ╟─9c7848f8-1c8b-4c05-a859-a2e32dcf4e90
+# ╠═4c7942f1-ef77-460b-a40d-24a0c8961cdb
+# ╠═6fcce823-2e56-488a-b9e3-bb40aadb11e0
+# ╠═e89d3d18-b3a8-490b-96f1-6fdf792178ac
+# ╠═05fd15ad-5082-4091-bdf6-1c492c18b09d
+# ╟─346ebd04-987c-4692-b899-1e500f56975b
+# ╠═e28ebf18-a1a3-4449-94fb-0dea42093cff
+# ╠═87a5ee82-0287-4003-8d18-d626fd48c7dc
+# ╠═39b132ea-e49c-4641-8293-55f59ee649df
+# ╟─210cc590-52bd-43c4-a4e5-6c064f5a895b
+# ╠═3cc73fc1-bec4-4bfa-9094-3a114226468e
+# ╠═58788411-f41e-45d7-a11c-88307d82dc57
+# ╟─0ff55d52-b17e-42a3-83d0-6cbb1a812f29
+# ╠═d09876c9-7181-4d58-8fff-82453e43541c
+# ╠═7859fa4f-3c5c-425f-9c15-ce0da7a85990
+# ╠═00b690af-20f4-43ea-afae-28d655c8ea13
+# ╟─4df8579f-9757-488e-8103-44e2ed680cb2
+# ╠═d5f5fbe6-b75b-4874-bb20-e562287ed51b
+# ╠═a0a1ca74-3c26-461b-8ae6-b0a4b8caa53e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
