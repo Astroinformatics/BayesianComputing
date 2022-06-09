@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.5
+# v0.19.6
 
 using Markdown
 using InteractiveUtils
@@ -56,8 +56,12 @@ md"""
 md"""
 ## Overview
 
-In this lab, we'll analyze the eccentricity distribution of a population of planets using a hierarchical Bayesian Model and the Turing probabilistic programming language.  
+In this lab, we'll analyze the eccentricity distribution of a population of planets using a hierarchical Bayesian Model and the [Turing](https://turing.ml/) probabilistic programming language (PPL).  
 You'll be able to generate synthetic data sets from multiple intrinsic distributions, choose the magnitude of measurement uncertainties, and compare the true intrinsic distribution to the inferred distribution.  
+
+The purpose of the lab is to demonstrate how you can implement a hierarchical Bayesian analysis quickly with a probabilistic programming language without having to compute a bunch of conditional probability distributions yourself (either because your model doesn't lend itself to analytic expressions or you just don't want to spend your time doing that).  
+
+Similar to the other lab for hierarchical Bayesian modeling, you'll be able to inspect how the posterior distributions for individual objects shrink in a hierarchical model.  If you have extra time, then you'll also be able to explore what happens when you analyze your population using a model that differs from the true model.  
 """
 
 # ╔═╡ 63a4e3e4-1645-4715-90b1-b708379706ef
@@ -121,7 +125,7 @@ md"Compute inferred distribution $(@bind inferred_ready CheckBox() )"
 
 # ╔═╡ b3ff4257-4758-4fc9-9a74-5150c41866f1
 md"""
-## Questions to Gudie your Exploration
+## Questions to Guide your Exploration
 Once you've thought through the results for a first calculation, it's time to do some numerical experiment.  
 
 ### Effects of sample size and measurement uncertainty
@@ -150,7 +154,7 @@ md"""
 
 # ╔═╡ 1b85cf6a-6300-4dd2-a764-670570bde946
 md"""
-### Effects of model misspecification
+### Effects of model misspecification (optional)
 If you still have time, consider choosing one model to generate the data and a different model to perform inference with.  
 
 **Question:** How does the distribution inferred with the wrong model compare to the distribution inferred with the correct model?  
@@ -165,44 +169,7 @@ md"""
 """
 
 # ╔═╡ cf44e114-4ac5-4bf1-9b5a-ef6b4f5e6bc9
-md"## Code for Models Used"
-
-# ╔═╡ 156a297e-51fb-45d2-81d3-387304dfc418
-md"### Uniform"
-
-# ╔═╡ c0709bd6-138b-40c6-95bc-ffe2a7416010
-begin
-	@model function eccentricities_uniform(e_obs, σₑ, ::Type{T} = Float64) where {T}
-    @assert size(σₑ) == size(e_obs)
-	N = size(e_obs,1)
-	@assert N >= 1
-	eps = 1e-4
-    # Prior for hyperparameter(s)
-	min_e ~ Uniform(0,1-eps)
-	max_e ~ Uniform(min_e+eps,1)
-	if !(min_e < max_e)
-       @addlogprob! -Inf
-       # Exit the model evaluation early
-       return
-	end
-	#dist_e = Uniform(min(min_e,max_e), max(min_e,max_e))
-	dist_e = Uniform(min_e,max_e)
-	e_latent = Vector{T}(undef, N)
-	# Specify likelihood
-	for i ∈ eachindex(e_obs)
-		e_latent[i] ~ dist_e  # Latent variables
-    	e_obs[i]  ~ truncated(Normal(e_latent[i], σₑ[i]),0,1)  # Observed variables
-    end
-	return (;e_latent, e_obs )
-	end
-
-	# Convenience functions
-	eccentricities_uniform(df::DataFrame) = eccentricities_uniform(df.e_obs, df.σₑ)
-	eccentricities_uniform(n::Integer, σ = 0.0) = eccentricities_uniform( missings(n), fill(σ,n) )
-
-	# Sampler to use for this model
-	sampler_uniform = NUTS(0.65)
-end
+md"## Code for Turing Models Used"
 
 # ╔═╡ 8c5b0d18-70bd-4fd4-9f94-99c67b3f8bc0
 md"### Beta Distribution"
@@ -262,77 +229,8 @@ begin
 	sampler_rayleigh = NUTS(0.65)
 end
 
-# ╔═╡ 3c80fe14-a38a-43f8-9a2d-8bd21a9e4094
-md"### Mixture of two Rayleigh Distributions"
-
-# ╔═╡ 0dfc0e68-f319-492f-9fc0-67ad06f8e8d3
-begin
-	@model function eccentricities_rayleigh_mixture(e_obs, σₑ, ::Type{T} = Float64) where {T}
-    @assert size(σₑ) == size(e_obs)
-	N = size(e_obs,1)
-	@assert N >= 1
-	K = 2
-    # Prior for hyperparameter(s)
-	σᵣs ~ filldist(Uniform(1e-4, 1), K)
-	#σᵣ_1 ~ Uniform(0., 0.1)
-	#σᵣ_2 ~ Uniform(0.1, 1)
-	#σᵣs = [σᵣ_1, σᵣ_2]
-	#frac_1 ~ Beta(0.5, 0.5)
-	w = [frac_1, 1-frac_1]
-	#w = Fill(1/K, K)
-	# Construct categorical distribution of assignments.
-    distribution_assignments = Categorical( w )
-	component = #Vector{Int}(undef, N)
-		TArray(Int, N)
-	#e_latent = Vector{T}(undef, N)
-	# Specify liklihood
-	for i ∈ eachindex(e_obs)
-		component[i] ~ distribution_assignments
-		e_obs[i] ~ Normal(σᵣs[component[i]], σₑ[i])
-		#e_obs[i] ~ Rayleigh(σᵣs[component[i]])
-		#e_obs[i]  ~ Normal(e_latent[i], σₑ[i])
-		#σᵣ_use = σᵣs[component[i]]
-		#σᵣ_use = component[i] == 1 ? σᵣ_1 : σᵣ_2
-		#e_latent[i] ~ truncated(Rayleigh(σᵣ_use), lower=1e-4, upper=1)  # Latent variables
-    	#e_obs[i]  ~ truncated(Normal(e_latent[i], σₑ[i]),0,1)  # Observed variables
-		#e_obs[i]  ~ truncated(Rayleigh(σᵣ_use),0,1)
-		#e_latent[i]  ~ truncated(MixtureModel(Rayleigh, [(σᵣ_1), (σᵣ_2)], [frac_1, 1-frac_1]) ,0,1)
-		#e_obs[i]  ~ truncated(Normal(e_latent[i], σₑ[i]),0,1)  # Observed variables
-    end
-	return (; e_obs, component)
-	#return (;e_latent, e_obs) #, component)
-	end
-
-	# Convenience functions
-	eccentricities_rayleigh_mixture(df::DataFrame) = eccentricities_rayleigh_mixture(df.e_obs, df.σₑ)
-	eccentricities_rayleigh_mixture(n::Integer, σ = 0.0) = eccentricities_rayleigh_mixture( missings(n), fill(σ,n) )
-
-	# Sampler to use for this model
-	#sampler_rayleigh_mixture = Gibbs(PG(10, :component), HMC(0.1, 5, :σᵣ_1, :σᵣ_2, :frac_1, :e_latent))
-	#sampler_rayleigh_mixture = Gibbs(PG(10, :component), HMC(0.05, 10, :σᵣs, 	:frac_1)) # , :e_latent))
-	sampler_rayleigh_mixture = Gibbs(PG(10, :component), HMC(0.05, 10, :σᵣs )) # , :e_latent))
-	#sampler_rayleigh_mixture = NUTS(0.65) #, [:σᵣ_1, :σᵣ_2, :frac_1, :e_latent])
-	#sampler_rayleigh_mixture = HMC(0.01, 5, :σᵣ_1, :σᵣ_2, :frac_1, :e_latent)
-	#sampler_rayleigh_mixture = IS()
-end
-
-# ╔═╡ 873e2d5a-a699-40bd-9528-0437fec28133
-md"## Old code probably delete"
-
-# ╔═╡ 6de8b2b8-180d-4f30-acbe-8bf780c75a54
-#=
-@code_warntype model.f(
-    model,
-    Turing.VarInfo(model),
-    Turing.SamplingContext(
-        Random.GLOBAL_RNG, Turing.SampleFromPrior(), Turing.DefaultContext(),
-    ),
-    model.args...,
-)
-=#
-
 # ╔═╡ 0b987316-b554-4497-9731-765dfe3a514d
-md"## Code for Graphical Interface"
+md"## Appearances"
 
 # ╔═╡ d78db46d-1e20-4cd1-be53-81f635561b27
 TableOfContents()
@@ -431,35 +329,15 @@ Measurement uncertainty:  $(Child("σₑ",NumberField(0:0.01:1,default=default_�
 	)
 end
 
-# ╔═╡ eb3fb452-62c2-4fab-a90e-942c4649ab23
-function pick_param_rayleigh_mixture()
-	@bind param_rayleigh_mixture confirm(
-	PlutoUI.combine() do Child
-md"""
-σᵣ₁: $(Child("σᵣ_1",NumberField(0.005:005:1,default=0.01)))  
-σᵣ₂: $(Child("σᵣ_2",NumberField(0.005:0.005:1,default=0.03)))  
-Fraction from 1: $(Child("frac_1",NumberField(0.00:0.005:1,default=0.6)))  
-
-Number of Planets: $(Child("num_pl",NumberField(1:max_num_planets,default=default_num_planets)))  
-Measurement uncertainty:  $(Child("σₑ",NumberField(0:0.01:1,default=default_σₑ)))  
-"""
-	end
-	)
-end
-
 # ╔═╡ ef766433-4510-424c-b63a-ab9a81a7461e
 begin  # Set choices for distributions
 	model_list = [
 		eccentricities_rayleigh,
 		eccentricities_beta,
-		#eccentricities_rayleigh_mixture  # would need to fix sampling issues
-		#eccentricities_uniform, # would need to fix sampling issues
 			]
 	model_name_list = [
 		"Rayleigh",
 		"Beta",
-		#"Mixture of 2 Rayleighs",
-		#"Uniform",
 		]
 	model_choices = model_list .=> model_name_list
 end;
@@ -513,15 +391,9 @@ Ready to run MCMC?   $(Child("ready",CheckBox()))
 if dist_gen == eccentricities_rayleigh
 	num_pl = param_rayleigh.num_pl
 	param_true = param_rayleigh
-elseif dist_gen == eccentricities_rayleigh_mixture
-	num_pl = param_rayleigh_mixture.num_pl
-	param_true = param_rayleigh_mixture
 elseif dist_gen == eccentricities_beta
 	num_pl = param_beta.num_pl
 	param_true = param_beta
-elseif dist_gen == eccentricities_uniform
-	num_pl = param_uniform.num_pl
-	param_true = param_uniform
 else
 	num_pl = nothing
 	param_true = nothing
@@ -598,13 +470,8 @@ end
 # ╔═╡ d614f82e-a233-4896-8b9b-26a357f28ff0
 if param_mcmc.dist_infer == eccentricities_rayleigh
 	param_init = (;σᵣ = 0.3)
-elseif param_mcmc.dist_infer == eccentricities_rayleigh_mixture
-	#param_init = (;σᵣ_1 = 0.02, σᵣ_2 = 0.3, frac_1 = 0.5)
-	param_init = (;σᵣs = [0.02, 0.3], frac_1 = 0.5)
 elseif param_mcmc.dist_infer == eccentricities_beta
 	param_init = (; α = 1, β = 1)
-elseif param_mcmc.dist_infer == eccentricities_uniform
-	param_init = (; e_min = 0.01, e_max = 0.9 )
 else
 	param_init = nothing
 	md"""
@@ -617,14 +484,7 @@ begin
 	opt_start_param = merge( param_init,
 		NamedTuple([Symbol("e_latent[$i]") for i in 1:num_pl]  .=> 	data.e_obs ) )
 	param_start_mcmc = opt_start_param
-
-	if param_mcmc.dist_infer == eccentricities_rayleigh_mixture
-		component_param = NamedTuple([Symbol("component[$i]") for i in 1:num_pl] .=> rand(1:2,num_pl) )
-		opt_start_param = merge(opt_start_param,component_param)
-		param_start_mcmc = [] #
-	end
-
-end
+end;
 
 # ╔═╡ 1123ba8b-e638-4a6e-96d3-c51d085b4dc7
 param_start_mcmc
@@ -680,27 +540,6 @@ if param_mcmc.ready && inferred_ready
 		label="Posterior", nbins=40)
 	plot!(Normal(data.e_obs[plt_pl_id], data.σₑ[plt_pl_id]), label="Measurement")
 	plot!(fill(data.e_true[plt_pl_id],2),[0,1], label=:none)
-end
-
-# ╔═╡ 782db16b-39b9-4526-89e8-3b240939c0c0
-if false
-if !param_mcmc.init_map
-	#param_start_mcmc = opt_start_param
-else
-	map_estimate = optimize(model, MAP(), collect(values(opt_start_param)) )
-
-	if Optim.converged(map_estimate.optim_result) &&(Optim.iterations(map_estimate.optim_result) >= 1)
-	#	param_start_mcmc = NamedTuple(keys(opt_start_param) .=> map(k->map_estimate.values[k], keys(opt_start_param)))
-			#map_estimate.values.array
-		#md"MAP values of population parameters: $(param_start_mcmc)"
-	else
-	#	param_start_mcmc = opt_start_param
-		md"""
-		!!! warning "Optimization of posterior didn't converge!"
-			You may want to change the generative and/or inferential model or inspect the contents of `map_estimate.optim_result` to learn more about what happened.
-		"""
-	end
-end
 end
 
 # ╔═╡ 6d4a9e19-9511-45ff-b74a-a37f0caaa16a
@@ -769,7 +608,7 @@ Turing = "~0.21.2"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.2"
+julia_version = "1.7.0"
 manifest_format = "2.0"
 
 [[deps.AbstractFFTs]]
@@ -2456,17 +2295,10 @@ version = "0.9.1+5"
 # ╟─a480bd7a-a4a9-43c7-81f5-77d15ec16289
 # ╠═ab655734-a8b7-47db-9b73-4099c4b11dfc
 # ╟─cf44e114-4ac5-4bf1-9b5a-ef6b4f5e6bc9
-# ╟─156a297e-51fb-45d2-81d3-387304dfc418
-# ╟─c0709bd6-138b-40c6-95bc-ffe2a7416010
 # ╟─8c5b0d18-70bd-4fd4-9f94-99c67b3f8bc0
 # ╠═6cb2fbfb-646e-4e5c-ae5c-c3146f19d76c
 # ╟─0cef66f6-44c4-4f3e-b901-ac8d33bad4a7
 # ╠═b8ab2460-7c59-4e87-8580-e7b49f0576aa
-# ╟─3c80fe14-a38a-43f8-9a2d-8bd21a9e4094
-# ╠═0dfc0e68-f319-492f-9fc0-67ad06f8e8d3
-# ╟─873e2d5a-a699-40bd-9528-0437fec28133
-# ╟─782db16b-39b9-4526-89e8-3b240939c0c0
-# ╟─6de8b2b8-180d-4f30-acbe-8bf780c75a54
 # ╟─0b987316-b554-4497-9731-765dfe3a514d
 # ╠═d78db46d-1e20-4cd1-be53-81f635561b27
 # ╟─deb1a219-f33c-469c-98a9-5bab181e4a43
@@ -2476,7 +2308,6 @@ version = "0.9.1+5"
 # ╠═c62ef364-ae3a-4b41-b808-567fef6f895e
 # ╠═230ad18a-c830-4e86-9edb-83e541994006
 # ╠═981a9b4d-d4cd-4497-99c9-f0747e042f0b
-# ╠═eb3fb452-62c2-4fab-a90e-942c4649ab23
 # ╠═ef766433-4510-424c-b63a-ab9a81a7461e
 # ╠═921a7aa8-f96a-4593-962b-d97be4d7014c
 # ╠═d614f82e-a233-4896-8b9b-26a357f28ff0

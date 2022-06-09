@@ -136,156 +136,6 @@ md"# Setup & Helper Code"
 # ╔═╡ 822c11e1-c64a-4400-91ea-f78a51553216
 use_threads = true
 
-# ╔═╡ 2ff8b895-cc26-4c9a-97a4-84b4aa010cb1
-md"### Plot of Sampling Pattern"
-
-# ╔═╡ 4750c434-1d5b-48f8-bfe8-3fb087eb1127
-max_evals_2d_error_plt = 2^16;
-
-# ╔═╡ eaab2562-0081-426b-9087-524c57cd7c2c
-begin  # pre-compute 2-d sampling patterns for interactive graphic below
-	Random.seed!(42)
-	p_uniform = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),UniformSample())
-	p_sobol = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),SobolSample())
-	p_lattice = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),LatticeRuleSample())
-	p_lds = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),LowDiscrepancySample([10,3]))
-end;
-
-# ╔═╡ 4b078935-4ae8-4645-a676-b4d93096a0e8
-max_max_evals_2d_plt = 2000;
-
-# ╔═╡ 1d6bbc7f-707f-43cf-a09c-b636f714ee35
-md"Number of samples: $(@bind max_evals_2d_plt Slider(1:max_max_evals_2d_plt; default=1))"
-
-# ╔═╡ e650a01a-de89-464f-886e-ffdda6ad26c3
-let
-	ms = 1
-	pltsize = (800,800)
-	plt_x = plt_y = range(0, stop = 1, length = 100)
-	errstr = "" #"\n(Δ = " * string(round(Δ_uniform_2d,digits=5)) * ")"
-	plt1 = scatter(view(p_uniform,1,1:max_evals_2d_plt), view(p_uniform,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Monte Carlo\n(Uniform sample)" * errstr )
-	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-
-	errstr = "" #"\n(Δ = " * string(round(Δ_sobol_2d,digits=5)) * ")"
-	plt2 = scatter(view(p_sobol,1,1:max_evals_2d_plt), view(p_sobol,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Sobol sequence" * errstr )
-	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-
-	errstr = "" #"\n(Δ = " * string(round(Δ_lattice_2d,digits=5)) * ")"
-	plt3 = scatter(view(p_lattice,1,1:max_evals_2d_plt), view(p_lattice,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Lattice rule\n" * errstr )
-	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-
-	errstr = "" #"\n(Δ = " * string(round(Δ_lds_2d,digits=5)) * ")"
-	plt4 = scatter(view(p_lds,1,1:max_evals_2d_plt), view(p_lds,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Low discrepancy sequence"*errstr )
-	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
-	plot(plt1, plt2, plt3, plt4)
-end
-
-# ╔═╡ 9c7848f8-1c8b-4c05-a859-a2e32dcf4e90
-md"### Error plot: 2-d Normal distribution"
-
-# ╔═╡ 4c7942f1-ef77-460b-a40d-24a0c8961cdb
-best_estimate_2d = hcubature(x->f_gaussian_at_origin(x,sigma=sigma_sample), zeros(2), ones(2), rtol=eps(Float64), atol=0, maxevals=1_000_000)[1];
-
-# ╔═╡ e89d3d18-b3a8-490b-96f1-6fdf792178ac
-n_to_test_mc_2d = 2 .^(1:log2_max_evals_2d);
-
-# ╔═╡ 346ebd04-987c-4692-b899-1e500f56975b
-md"### Error plot: 2-d Multiple Peaks"
-
-# ╔═╡ 210cc590-52bd-43c4-a4e5-6c064f5a895b
-md"### Error plot: High-d"
-
-# ╔═╡ 4df8579f-9757-488e-8103-44e2ed680cb2
-md"### Apperances"
-
-# ╔═╡ d5f5fbe6-b75b-4874-bb20-e562287ed51b
-TableOfContents()
-
-# ╔═╡ a0a1ca74-3c26-461b-8ae6-b0a4b8caa53e
-nbsp = html"&nbsp;";
-
-# ╔═╡ 3da61e81-2619-4206-be08-38ed262cb517
-md"Redraw peak locations: $(@bind regen_multipeaks_2d Button()) $nbsp $nbsp "
-
-# ╔═╡ e28ebf18-a1a3-4449-94fb-0dea42093cff
- begin
-	regen_multipeaks_2d
-	const num_peaks_2d = 4
-	const peak_centers_2d = rand(2, num_peaks_2d)
-	function f_multipeaks_2d(x; sigma::Real )
-		result = 0.0
-		for i in 1:num_peaks_2d
-			result += exp(-sum((x.-peak_centers_2d[:,i]).^2)/(2*sigma^2))
-		end
-		return result
-	end
-	func_to_integrate_2d = f_multipeaks_2d
- end;
-
-# ╔═╡ d8a19f6d-da16-486a-a705-b907c454b0e3
-let
-	x = y = range(0, stop = 1, length = 100)
-	contour(x, y, (x,y) -> func_to_integrate_2d([x,y], sigma=sigma_err) , size=(400,400))
-	xlabel!("x")
-	ylabel!("y")
-end
-
-# ╔═╡ 82c1c073-d97a-41f5-98a1-4630fb41d095
-@bind ndim_plt_param confirm(
-	PlutoUI.combine() do Child
-md"""   		
-Number of dimensions for integrand: $(Child("num_dim", NumberField(1:12, default=2)))
-$nbsp $nbsp
-σ: $(Child("sigma", NumberField(0.02:0.02:1.0, default=0.2)))
-$nbsp $nbsp
-log₂(Max evaluations):
-$(Child("log2_max_evals", NumberField(8:17, default=14)))  
-"""
-	end
-)
-
-# ╔═╡ 3cc73fc1-bec4-4bfa-9094-3a114226468e
-begin
-	num_dim = ndim_plt_param.num_dim
-	sigma_err_highd = ndim_plt_param.sigma
-	log2_max_evals = ndim_plt_param.log2_max_evals
-	n_to_test_mc = 2 .^(1:log2_max_evals)
-end;
-
-# ╔═╡ 58788411-f41e-45d7-a11c-88307d82dc57
- begin
-	regen_multipeaks_highd
-	const num_peaks = 4
-	const peak_centers = rand(num_dim, num_peaks)
-	function f_multipeaks(x; sigma::Real)
-		result = 0.0
-		for i in 1:num_peaks
-			result += exp(-sum((x.-peak_centers[:,i]).^2)/(2*sigma^2))
-		end
-		return result
-	 end
-end;
-
-# ╔═╡ 0ff55d52-b17e-42a3-83d0-6cbb1a812f29
-if func_to_integrate_2d == f_multipeaks_2d
-	func_to_integrate = f_multipeaks
-else
-	func_to_integrate = f_gaussian_at_origin
-end
-
-# ╔═╡ 1c0c9b4c-bf8e-4257-a839-e4a02542cdfd
-begin
-	best_estimate = hcubature(x->func_to_integrate(x,sigma=sigma_err_highd), zeros(num_dim), ones(num_dim), rtol=1e-16, atol=0.0, maxevals=1_000_000)[1]
-	(;best_estimate )
-end
-
-# ╔═╡ 00b690af-20f4-43ea-afae-28d655c8ea13
-begin
-    estimates_hcubature_tmp = map(n->hcubature(x->func_to_integrate(x,sigma=sigma_err_highd), zeros(num_dim), ones(num_dim), rtol=eps(Float64), atol=0, maxevals=n),  n_to_test_mc)
-	estimates_hcubature = map(x->x[1], estimates_hcubature_tmp)
-	estimates_hcubature_error = map(x->x[2], estimates_hcubature_tmp)
-end;
-
 # ╔═╡ 59f92f75-04f0-4e1a-820e-d05a27104f25
 md"## Integration routines"
 
@@ -346,13 +196,6 @@ function integrate_monte_carlo_parallel(f::Function, n::Integer; seed::Integer =
 	return result
 end
 
-# ╔═╡ d09876c9-7181-4d58-8fff-82453e43541c
-if use_threads
-	estimates_mc = integrate_monte_carlo_parallel.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
-else
-	estimates_mc = integrate_monte_carlo_serial.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
-end;
-
 # ╔═╡ fede99f4-d0b8-469d-bbe9-4756606b6f7d
 function integrate_sobol_serial(f::Function, n::Integer; num_dim::Integer = 2)
 	s = SobolSeq(num_dim)
@@ -405,27 +248,20 @@ function integrate_sobol_parallel(f::Function, n::Integer; num_dim::Integer = 2)
 	return result
 end
 
-# ╔═╡ 7859fa4f-3c5c-425f-9c15-ce0da7a85990
-if use_threads
-	estimates_sobol = integrate_sobol_parallel.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
-else
-	estimates_sobol = integrate_sobol_serial.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
+# ╔═╡ 2ff8b895-cc26-4c9a-97a4-84b4aa010cb1
+md"### Plot of Sampling Pattern"
+
+# ╔═╡ 4750c434-1d5b-48f8-bfe8-3fb087eb1127
+max_evals_2d_error_plt = 2^16;
+
+# ╔═╡ eaab2562-0081-426b-9087-524c57cd7c2c
+begin  # pre-compute 2-d sampling patterns for interactive graphic below
+	Random.seed!(42)
+	p_uniform = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),UniformSample())
+	p_sobol = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),SobolSample())
+	p_lattice = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),LatticeRuleSample())
+	p_lds = QuasiMonteCarlo.sample(max_evals_2d_error_plt,zeros(2),ones(2),LowDiscrepancySample([10,3]))
 end;
-
-# ╔═╡ 9e6e6850-7320-4cfb-9528-b3467be70a69
-begin
-	plt = plot(yaxis=:log, legend=:bottomleft)
-
-	plot!(plt,log10.(n_to_test_mc), abs.(estimates_mc .- best_estimate)./best_estimate, label="Monte Carlo", markershape=:circle, color=1)
-	plot!(plt,log10.(n_to_test_mc), abs.(estimates_sobol .- best_estimate)./best_estimate, 	label="Sobol", markershape=:circle, alpha=0.5, color=2)
-	plot!(plt,log10.(n_to_test_mc), abs.(estimates_hcubature .- best_estimate)./best_estimate,
-			label="H-Cubature", markershape=:circle, color=3)
-	ylims!(10.0 .^ log10_y_axis_min,2)
-	xlabel!("log₁₀(Number of Evaluations)")
-	ylabel!("abs(Error)/(best estimate)")
-	title!("Error versus Number of Evaluations:\n" * string(num_dim) * "-d Mixture of Gaussians")
-	plt
-end
 
 # ╔═╡ 97f6edce-3bfd-4c53-9662-8d3304b41b7c
 function integrate_uniform(f::Function, n::Integer; seed::Integer = 42, num_dim::Integer = 2)
@@ -468,6 +304,41 @@ function integrate_lds(f::Function, n::Integer; seed::Integer = 42, num_dim::Int
 	mapreduce(i->f(view(pts,:,i)), +, 1:n)/n
 end
 
+# ╔═╡ 4b078935-4ae8-4645-a676-b4d93096a0e8
+max_max_evals_2d_plt = 2000;
+
+# ╔═╡ 1d6bbc7f-707f-43cf-a09c-b636f714ee35
+md"Number of samples: $(@bind max_evals_2d_plt Slider(1:max_max_evals_2d_plt; default=1))"
+
+# ╔═╡ e650a01a-de89-464f-886e-ffdda6ad26c3
+let
+	ms = 1
+	pltsize = (800,800)
+	plt_x = plt_y = range(0, stop = 1, length = 100)
+	errstr = "" #"\n(Δ = " * string(round(Δ_uniform_2d,digits=5)) * ")"
+	plt1 = scatter(view(p_uniform,1,1:max_evals_2d_plt), view(p_uniform,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Monte Carlo\n(Uniform sample)" * errstr )
+	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
+
+	errstr = "" #"\n(Δ = " * string(round(Δ_sobol_2d,digits=5)) * ")"
+	plt2 = scatter(view(p_sobol,1,1:max_evals_2d_plt), view(p_sobol,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Sobol sequence" * errstr )
+	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
+
+	errstr = "" #"\n(Δ = " * string(round(Δ_lattice_2d,digits=5)) * ")"
+	plt3 = scatter(view(p_lattice,1,1:max_evals_2d_plt), view(p_lattice,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Lattice rule\n" * errstr )
+	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
+
+	errstr = "" #"\n(Δ = " * string(round(Δ_lds_2d,digits=5)) * ")"
+	plt4 = scatter(view(p_lds,1,1:max_evals_2d_plt), view(p_lds,2,1:max_evals_2d_plt), xlims=(0,1), ylims=(0,1), legend=:none, ms=ms, size=pltsize, title="Low discrepancy sequence"*errstr )
+	contour!(plt_x, plt_y, (x,y) -> f_gaussian_at_origin([x,y],sigma=sigma_sample))
+	plot(plt1, plt2, plt3, plt4)
+end
+
+# ╔═╡ 9c7848f8-1c8b-4c05-a859-a2e32dcf4e90
+md"### Error plot: 2-d Normal distribution"
+
+# ╔═╡ 4c7942f1-ef77-460b-a40d-24a0c8961cdb
+best_estimate_2d = hcubature(x->f_gaussian_at_origin(x,sigma=sigma_sample), zeros(2), ones(2), rtol=eps(Float64), atol=0, maxevals=1_000_000)[1];
+
 # ╔═╡ 6fcce823-2e56-488a-b9e3-bb40aadb11e0
 begin
 	Δgauss_uniform_2d(n::Integer) = (integrate_uniform(x->f_gaussian_at_origin(x,sigma=sigma_sample), n)  - best_estimate_2d) / best_estimate_2d
@@ -478,6 +349,9 @@ end;
 
 # ╔═╡ be807633-68c7-4b9a-91f7-a8cdaee56814
 (;Δ_uniform = Δgauss_uniform_2d(max_evals_2d_plt), Δ_sobol=Δgauss_sobol_2d(max_evals_2d_plt), Δ_lattice=Δgauss_lattice_2d(max_evals_2d_plt), Δ_lds = Δgauss_lds_2d(max_evals_2d_plt))
+
+# ╔═╡ e89d3d18-b3a8-490b-96f1-6fdf792178ac
+n_to_test_mc_2d = 2 .^(1:log2_max_evals_2d);
 
 # ╔═╡ 05fd15ad-5082-4091-bdf6-1c492c18b09d
 begin
@@ -501,6 +375,47 @@ let
 	ylabel!("abs(Error)/(best estimate)")
 	title!("Error versus Number of Evaluations: 2-d Gaussian")
 	plt
+end
+
+# ╔═╡ 346ebd04-987c-4692-b899-1e500f56975b
+md"### Error plot: 2-d Multiple Peaks"
+
+# ╔═╡ 210cc590-52bd-43c4-a4e5-6c064f5a895b
+md"### Error plot: High-d"
+
+# ╔═╡ 4df8579f-9757-488e-8103-44e2ed680cb2
+md"### Apperances"
+
+# ╔═╡ d5f5fbe6-b75b-4874-bb20-e562287ed51b
+TableOfContents()
+
+# ╔═╡ a0a1ca74-3c26-461b-8ae6-b0a4b8caa53e
+nbsp = html"&nbsp;";
+
+# ╔═╡ 3da61e81-2619-4206-be08-38ed262cb517
+md"Redraw peak locations: $(@bind regen_multipeaks_2d Button()) $nbsp $nbsp "
+
+# ╔═╡ e28ebf18-a1a3-4449-94fb-0dea42093cff
+ begin
+	regen_multipeaks_2d
+	const num_peaks_2d = 4
+	const peak_centers_2d = rand(2, num_peaks_2d)
+	function f_multipeaks_2d(x; sigma::Real )
+		result = 0.0
+		for i in 1:num_peaks_2d
+			result += exp(-sum((x.-peak_centers_2d[:,i]).^2)/(2*sigma^2))
+		end
+		return result
+	end
+	func_to_integrate_2d = f_multipeaks_2d
+ end;
+
+# ╔═╡ d8a19f6d-da16-486a-a705-b907c454b0e3
+let
+	x = y = range(0, stop = 1, length = 100)
+	contour(x, y, (x,y) -> func_to_integrate_2d([x,y], sigma=sigma_err) , size=(400,400))
+	xlabel!("x")
+	ylabel!("y")
 end
 
 # ╔═╡ 87a5ee82-0287-4003-8d18-d626fd48c7dc
@@ -534,6 +449,91 @@ let
 	xlabel!("log₁₀(Number of Evaluations)")
 	ylabel!("abs(Error)/(best estimate)")
 	title!("Error versus Number of Evaluations:\n2-d Mixture of Gaussians")
+	plt
+end
+
+# ╔═╡ 82c1c073-d97a-41f5-98a1-4630fb41d095
+@bind ndim_plt_param confirm(
+	PlutoUI.combine() do Child
+md"""   		
+Number of dimensions for integrand: $(Child("num_dim", NumberField(1:12, default=2)))
+$nbsp $nbsp
+σ: $(Child("sigma", NumberField(0.02:0.02:1.0, default=0.2)))
+$nbsp $nbsp
+log₂(Max evaluations):
+$(Child("log2_max_evals", NumberField(8:17, default=14)))  
+"""
+	end
+)
+
+# ╔═╡ 3cc73fc1-bec4-4bfa-9094-3a114226468e
+begin
+	num_dim = ndim_plt_param.num_dim
+	sigma_err_highd = ndim_plt_param.sigma
+	log2_max_evals = ndim_plt_param.log2_max_evals
+	n_to_test_mc = 2 .^(1:log2_max_evals)
+end;
+
+# ╔═╡ 58788411-f41e-45d7-a11c-88307d82dc57
+ begin
+	regen_multipeaks_highd
+	const num_peaks = 4
+	const peak_centers = rand(num_dim, num_peaks)
+	function f_multipeaks(x; sigma::Real)
+		result = 0.0
+		for i in 1:num_peaks
+			result += exp(-sum((x.-peak_centers[:,i]).^2)/(2*sigma^2))
+		end
+		return result
+	 end
+end;
+
+# ╔═╡ 0ff55d52-b17e-42a3-83d0-6cbb1a812f29
+if func_to_integrate_2d == f_multipeaks_2d
+	func_to_integrate = f_multipeaks
+else
+	func_to_integrate = f_gaussian_at_origin
+end
+
+# ╔═╡ 1c0c9b4c-bf8e-4257-a839-e4a02542cdfd
+begin
+	best_estimate = hcubature(x->func_to_integrate(x,sigma=sigma_err_highd), zeros(num_dim), ones(num_dim), rtol=1e-16, atol=0.0, maxevals=1_000_000)[1]
+	(;best_estimate )
+end
+
+# ╔═╡ d09876c9-7181-4d58-8fff-82453e43541c
+if use_threads
+	estimates_mc = integrate_monte_carlo_parallel.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
+else
+	estimates_mc = integrate_monte_carlo_serial.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
+end;
+
+# ╔═╡ 7859fa4f-3c5c-425f-9c15-ce0da7a85990
+if use_threads
+	estimates_sobol = integrate_sobol_parallel.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
+else
+	estimates_sobol = integrate_sobol_serial.(x->func_to_integrate(x,sigma=sigma_err_highd), n_to_test_mc,num_dim=num_dim)
+end;
+
+# ╔═╡ 00b690af-20f4-43ea-afae-28d655c8ea13
+begin
+    estimates_hcubature_tmp = map(n->hcubature(x->func_to_integrate(x,sigma=sigma_err_highd), zeros(num_dim), ones(num_dim), rtol=eps(Float64), atol=0, maxevals=n),  n_to_test_mc)
+	estimates_hcubature = map(x->x[1], estimates_hcubature_tmp)
+	estimates_hcubature_error = map(x->x[2], estimates_hcubature_tmp)
+end;
+
+# ╔═╡ 9e6e6850-7320-4cfb-9528-b3467be70a69
+begin
+	plt = plot(yaxis=:log, legend=:bottomleft)
+
+	plot!(plt,log10.(n_to_test_mc), abs.(estimates_mc .- best_estimate)./best_estimate, label="Monte Carlo", markershape=:circle, color=1)
+	plot!(plt,log10.(n_to_test_mc), abs.(estimates_sobol .- best_estimate)./best_estimate, 	label="Sobol", markershape=:circle, alpha=0.5, color=2)
+	plot!(plt,log10.(n_to_test_mc), abs.(estimates_hcubature .- best_estimate)./best_estimate,
+			label="H-Cubature", markershape=:circle, color=3)
+	ylims!(10.0 .^ log10_y_axis_min,2)
+	xlabel!("log₁₀(Number of Evaluations)")
+	ylabel!("abs(Error)/(best estimate)")
+	title!("Error versus Number of Evaluations:\n" * string(num_dim) * "-d Mixture of Gaussians")
 	plt
 end
 
