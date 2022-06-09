@@ -7,10 +7,10 @@
 ---
 
 This repository contains several computational notebooks: 
-- monte_carlo.jl (Pluto notebook):  Compares methods for performing numerical integration
-- app_hbm_galaxy_evolution.ipynb (Jupyter notebook):  Applies hierarchical Bayesian modeling to make inferences about galaxy evolution.  
-- ppl_intro.jl (Pluto notebook):   Introduces the use of probabilistic programming languages (PPLs) using [Turing.jl](https://turing.ml/stable/)
-- ppl_hbm.jl (Pluto notebook):  Demonstrates performing inference with hierarchical Bayesian models using the Turing PPL
+- monte_carlo.jl ([Pluto notebook](https://astroinformatics.github.io/BayesianComputing/monte_carlo.html)):  Compares methods for performing numerical integration
+- app_hbm_galaxy_evolution.ipynb ([Jupyter notebook](https://github.com/Astroinformatics/BayesianComputing/blob/main/app_hbm_galaxy_evolution.ipynb)):  Applies hierarchical Bayesian modeling to make inferences about galaxy evolution.  
+- ppl_intro.jl ([Pluto notebook](https://astroinformatics.github.io/BayesianComputing/ppl_intro.jl.html)):   Introduces the use of probabilistic programming languages (PPLs) using [Turing.jl](https://turing.ml/stable/)
+- ppl_hbm.jl ([Pluto notebook](https://astroinformatics.github.io/BayesianComputing/ppl_hbm.jl.html)):  Demonstrates performing inference with hierarchical Bayesian models using the Turing PPL
 
 monte_carlo.jl is mostly independent of the other notebooks in this lesson and could reasonably be done first or last.
 We recommend that students complete ppl_intro.jl before ppl_hbm.jl.  
